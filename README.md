@@ -391,6 +391,9 @@ discovery:
     - kind: device_class
       includes_any: ["tv"]
       weight: 10
+    - kind: sound_mode_list_signature
+      matches: ["STEREO", "DOLBY_PLII_IIx_MOVIE", "DOLBY_PLII_IIx_MUSIC", "DOLBY_PLII_IIx_GAME", "DOLBY_PL", "DTS_NEO_6_CINEMA", "DTS_NEO_6_MUSIC", "MCH_STEREO"]
+      weight: 50
     - kind: attribute_constellation
       includes: ["source_list", "media_content_id", "media_duration", "media_position", "media_position_updated_at", "media_title", "media_artist", "app_id", "app_name", "entity_picture", "friendly_name", "supported_features"]
       weight: 50
@@ -403,6 +406,7 @@ Signal kinds in v1:
 - **`integration_domain`** — entity belongs to a listed HA integration domain. Medium.
 - **`supported_features`** — entity's `supported_features` bitmask is in the listed values. Multiple values accommodate drift across HA versions. Weak corroboration.
 - **`source_list_signature`** — entity's `source_list` contains specified values. Weak corroboration.
+- **`sound_mode_list_signature`** — entity's `sound_mode_list` contains the set of specified values. Medium corroboration.
 - **`device_class`** — entity's `device_class` is equal to specified values. Weak corroboration.
 - **`friendly_name`** — entity's `friendly_name` attribute is equal to or conatins the specified string. Weak corroboration.
 - **`attribute_constellation`** — entity's available attributes match the list of attributes. Medium corroboration.
