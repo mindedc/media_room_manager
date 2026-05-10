@@ -291,7 +291,7 @@ Two flavors of contention exist:
 
 **Output-side contention.** A path needs an output that's already routed to a different source. Detected for matrix-style devices (with `output_selection` per output) and for devices with `exclusive_outputs: true`.
 
-Both flavors apply the requesting Media Room Manager zone's contention policy: `deny` (default), `preempt` (tear down conflicting paths), or `share` (only valid for outputs already broadcasting compatibly).
+Both flavors apply the requesting Media Room Manager zone's contention policy: `deny` (default) or `preempt` (tear down conflicting paths). A `share` policy is planned for v1.x for cases where outputs are already broadcasting compatibly.
 
 ## Virtual sources: static and dynamic
 
@@ -367,25 +367,27 @@ Profiles assert canonical defaults; instances remap when reality differs.
 
 When the user opens the panel's "Add Device" flow, the discovery service scans Home Assistant's entity registry and device registry and suggests appropriate profiles. Suggestions are confidence-ranked and the user always confirms — there is no automatic instantiation.
 
-Discovery operates in two stages: an **anchor match** against any entity in HA to identify the device and profile, followed by **additional output group matching** that walks the HA device registry for sibling entities to bind to the profile's remaining output groups.
+The `discovery` block is optional at the top level of a profile. Profiles without a `discovery` block aren't auto-suggested; users find them through library search and the ad-hoc wizard.
 
-The discovery: section of the profile is optional. Profiles without them would simply be slected manually.
+Discovery operates in two stages: an **anchor match** against any entity in HA to identify the device and profile, followed by **sibling matching** that walks the HA device registry for additional entities to bind to the profile's remaining output groups.
 
 #### Stage 1: anchor matching
 
-The discovery service iterates the HA entity registry, scoring each entity against each profile's anchor signals. The profile's `discovery.anchor` block declares which output group is the anchor (typically `main`) and the signals used to match it. Signals are weighted; the service sums matched weights and applies the `match_threshold`. Entities scoring above the threshold are anchor candidates.
+The discovery service iterates the HA entity registry, scoring each entity against each profile's anchor signals. The output group flagged with `is_discovery_anchor: true` is the anchor; its signals and its own `match_threshold` are used for this stage. Signals are weighted; the service sums matched weights and applies the threshold. Entities scoring above the threshold are anchor candidates.
 
-#### Stage 2: additional output group matching
+#### Stage 2: sibling matching
 
-For each anchor candidate, the discovery service looks up its HA device registry `device_id` and retrieves sibling entities under the same device (including disabled entities). For each `additional_output_groups` entry in the profile, the service scores the sibling entities against that entry's signals and assigns the best match — or, when no sibling meets the threshold and the entry is marked `optional`, leaves the output group unbound.
+For each anchor candidate, the discovery service looks up its HA device registry `device_id` and retrieves sibling entities under the same device (including disabled entities, via `async_entries_for_device(ent_reg, device_id, include_disabled_entities=True)`). For each other output group entry in the discovery block, the service scores the sibling entities against that entry's signals and applies that entry's own `match_threshold`. The best-matching sibling is bound — or, when no sibling meets the threshold and the entry is marked `optional`, the output group is left unbound.
 
-Disabled-by-default zone entities (such as a zone 2 entity for an AVR integration) are still considered as sibling candidates. When discovery binds a disabled entity to an output group, the suggestion notes the disabled state so the user can enable it in their integration's settings before confirming.
+Disabled-by-default zone entities (such as the zone 2 entity for some AVR integrations) are still considered as sibling candidates. When discovery binds a disabled entity to an output group, the suggestion notes the disabled state so the user can enable it in their integration's settings before confirming.
 
-When no sibling matches a required additional output group, the suggestion is still presented but flagged: "Zone 2 entity not found — please bind manually." User assignment is the always-available fallback.
+When no sibling matches a required output group, the suggestion is still presented but flagged: "Zone 2 entity not found — please bind manually." User assignment is the always-available fallback.
 
+Anchor matching benefits from a higher `match_threshold` than sibling matching: anchoring identifies the device from scratch across all entities in HA, while sibling matching chooses among a small set of entities already constrained to one device. Per-output-group thresholds let profiles tune each stage appropriately.
+
+#### Schema
 
 ```yaml
-
 discovery:
   output_groups:
     - output_group: main
@@ -412,11 +414,17 @@ discovery:
           matches: ["tv"]
           weight: 10
         - kind: sound_mode_list_signature
-          matches: ["STEREO", "DOLBY_PLII_IIx_MOVIE", "DOLBY_PLII_IIx_MUSIC", "DOLBY_PLII_IIx_GAME", "DOLBY_PL", "DTS_NEO_6_CINEMA", "DTS_NEO_6_MUSIC", "MCH_STEREO"]
+          matches: ["STEREO", "DOLBY_PLII_IIx_MOVIE", "DOLBY_PLII_IIx_MUSIC",
+                    "DOLBY_PLII_IIx_GAME", "DOLBY_PL", "DTS_NEO_6_CINEMA",
+                    "DTS_NEO_6_MUSIC", "MCH_STEREO"]
           weight: 50
         - kind: attribute_constellation
-          includes: ["source_list", "media_content_id", "media_duration", "media_position", "media_position_updated_at", "media_title", "media_artist", "app_id", "app_name", "entity_picture", "friendly_name", "supported_features"]
+          includes: ["source_list", "media_content_id", "media_duration",
+                     "media_position", "media_position_updated_at", "media_title",
+                     "media_artist", "app_id", "app_name", "entity_picture",
+                     "friendly_name", "supported_features"]
           weight: 50
+
     - output_group: zone_2
       match_threshold: 60
       optional: true
@@ -431,25 +439,23 @@ discovery:
           includes: ["source_list", "supported_features"]
           weight: 30
 ```
+
 Exactly one output group entry must be flagged `is_discovery_anchor: true`. For single-output-group profiles (Apple TV, Blu-ray players, etc.), the one output group entry carries the anchor flag and the `output_groups` list has just one item.
 
+#### Signal kinds
 
-Signal kinds in v1:
+- **`device_registry`** — manufacturer and model match against the device registry entry the entity belongs to. Read from HA's device registry, not from entity state. Strong; definitive when populated.
+- **`platform`** — entity registry entry's `platform` field matches the listed `domain`. Read from HA's entity registry, not from entity state. Strong for integrations that uniquely cover one device class (e.g., `kodi`, `apple_tv`); medium for integrations covering many models (e.g., `denonavr`).
+- **`supported_features`** — entity's `supported_features` bitmask is in the listed `values`. Multiple values accommodate drift across HA versions. Weak corroboration on its own; strong when combined with `device_registry`.
+- **`source_list_signature`** — entity's `source_list` matches with `includes_any` (at least one listed value present), `includes` (all listed values present), or `matches` (exact set match). Medium corroboration.
+- **`sound_mode_list_signature`** — entity's `sound_mode_list` matches with the same operators as `source_list_signature`. Medium corroboration. Strongly distinguishing for AVRs and surround processors since most other media_players don't have this attribute.
+- **`device_class`** — entity's `device_class` is in the listed values. Weak corroboration; stable across user customization.
+- **`friendly_name`** — entity's `friendly_name` matches one of `friendly_name_patterns`. Weak signal — friendly names are user-controllable. Useful when integrations populate sensible defaults that users commonly leave alone (a Denon AVR's default friendly name often matches the model number); not useful when friendly names are user-supplied from configuration (Kodi instance names).
+- **`attribute_constellation`** — entity's set of available attribute keys (presence, not values) contains all keys in `includes`. Medium corroboration. Particularly useful for distinguishing entity types within the same integration — for example, an AVR's main zone has a `sound_mode_list` attribute while zone 2 doesn't, making the constellation a clean discriminator even though both entities share the same platform.
 
-- **`device_registry`** — manufacturer + model match against the device registry entry. Strong.
-- **`integration_domain`** — entity belongs to a listed HA integration domain. Medium.
-- **`supported_features`** — entity's `supported_features` bitmask is in the listed values. Multiple values accommodate drift across HA versions. Weak corroboration.
-- **`source_list_signature`** — entity's `source_list` contains specified values. Weak corroboration.
-- **`sound_mode_list_signature`** — entity's `sound_mode_list` contains the set of specified values. Medium corroboration.
-- **`device_class`** — entity's `device_class` is equal to specified values. Weak corroboration.
-- **`friendly_name`** — entity's `friendly_name` attribute is equal to or conatins the specified string. Weak corroboration.
-- **`attribute_constellation`** — entity's available attributes match the list of attributes. Medium corroboration.
+The discovery service adds matched signals' weights and applies each output group's `match_threshold`. When two profiles match similarly well, both are surfaced and the user picks. Confidence score is shown in the UI.
 
-The discovery service adds matched signals' weights, applies the threshold, and surfaces the result. In the case where two profiles match similarly well both are surfaced and the user picks. Confidence score is shown in the UI.
-
-For multi-entity devices, when a user picks an auto-suggested AVR with multiple output groups, the panel can pre-fill bindings for each group if the discovery was confident.
-
-Profiles without a `discovery` block are still valid — they don't get auto-suggested, but users can find them through search.
+For multi-output-group devices, when a user picks an auto-suggested AVR, the panel pre-fills bindings for each output group whose sibling match was confident.
 
 #### Implementation notes
 
@@ -570,8 +576,6 @@ External state changes — someone hits the AVR remote and changes the source �
 
 ## Power management
 
-## Power management
-
 Power behavior is declared in the profile via two fields: `power_handling` and `power_on_delay`.
 
 ### `power_handling`
@@ -652,7 +656,7 @@ The orchestrator translates the resolved plan into commands:
 
 **Failure handling.** Hard failure surfaces on the zone media_player via `state: unavailable` and `attributes.error_detail`.
 
-**Contention.** Per-zone policy: `deny` (default), `preempt`, or `share`. Configurable per zone.
+**Contention.** Per-zone policy: `deny` (default) or `preempt`. Configurable per zone. The `share` policy is planned for v1.x for cases where outputs are already broadcasting compatibly.
 
 ## Storage and data layout
 
@@ -954,6 +958,8 @@ schema_version: 1
 manufacturer: Anthem
 model: MRX 740
 category: avr
+power_handling: discrete_capable
+power_on_delay: 5
 
 output_groups:
   - id: main
@@ -997,13 +1003,35 @@ interfaces:
     type: rca_audio
     label: "ZONE 2 PRE-OUT"
     output_group: zone_2
+
+discovery:
+  output_groups:
+    - output_group: main
+      is_discovery_anchor: true
+      match_threshold: 60
+      signals:
+        - kind: device_registry
+          manufacturer: "Anthem"
+          model_patterns: ["MRX 740"]
+          weight: 100
+        - kind: attribute_constellation
+          includes: ["source_list", "sound_mode_list", "supported_features"]
+          weight: 50
+
+    - output_group: zone_2
+      match_threshold: 50
+      optional: true
+      signals:
+        - kind: attribute_constellation
+          includes: ["source_list", "supported_features"]
+          weight: 30
 ```
 
 The main and parallel HDMI outputs both belong to `main` — both carry whatever's on the main zone simultaneously. A user can put both in a `simultaneous` Media Room Manager zone (driving two TVs from the AVR's parallel outputs) or in different zones if they happen to have separate displays driven by each.
 
 ### An IR-controlled DVD player (Sony DVP-NS500V)
 
-Single output group, no input selection needed (no inputs to switch among). Mechanism declarations are explicit because the device isn't controlled via `media_player`.
+Single output group, no input selection needed (no inputs to switch among). Mechanism declarations are explicit because the device isn't controlled via `media_player`. The Sony uses a single POWER toggle command rather than discrete on/off codes.
 
 ```yaml
 profile_id: sony/dvp-ns500v
@@ -1011,11 +1039,13 @@ schema_version: 1
 manufacturer: Sony
 model: DVP-NS500V
 category: source
+power_handling: toggle
+power_on_delay: 4
 
 output_groups:
   - id: main
     # No selection_mechanism — this is a source device with one
-    # output and no inputs to switch among.
+    # output group and no inputs to switch among.
     aux_entity: ir_blaster
     provides_roles: [power, transport]
     role_operations:
@@ -1056,9 +1086,6 @@ interfaces:
     type: coax_audio
     label: "COAX DIGITAL OUT"
     output_group: main
-
-power_metadata:
-  power_on_delay: 4
 ```
 
 ### An HDMI matrix exposed as one `select` per output (Monoprice Blackbird 8x8)
@@ -1071,6 +1098,7 @@ schema_version: 1
 manufacturer: Monoprice
 model: Blackbird 8x8 (24179)
 category: matrix
+power_handling: discrete_capable
 
 output_groups:
   - id: out_1
@@ -1115,6 +1143,7 @@ schema_version: 1
 manufacturer: HDFury
 model: Diva
 category: matrix
+power_handling: discrete_capable
 
 output_groups:
   - id: tx0
@@ -1185,6 +1214,8 @@ schema_version: 1
 manufacturer: Lumagen
 model: Radiance Pro
 category: video_processor
+power_handling: discrete_capable
+power_on_delay: 6
 
 output_groups:
   - id: main
@@ -1195,6 +1226,7 @@ output_groups:
     provides_roles: [source_selection]
 
 inputs_are_exclusive_per_output_group: [main]
+exclusive_outputs: true
 
 interfaces:
   - id: hdmi_in_1
@@ -1221,6 +1253,8 @@ interfaces:
     output_group: main
 ```
 
+The `exclusive_outputs: true` flag declares that even though both outputs are in the same group, only one is in correct use at a time. The integration tracks this for contention but does not command the device to change which is active — that's the user's responsibility, typically via an automation triggered off Media Room Manager's zone activation events.
+
 ### A passive converter (HDMI audio extractor)
 
 ```yaml
@@ -1229,6 +1263,7 @@ schema_version: 1
 manufacturer: Generic
 model: HDMI Audio Extractor
 category: passive_converter
+power_handling: disabled
 
 output_groups:
   - id: main
@@ -1292,6 +1327,7 @@ User-built configuration — devices, connections, zones, source visibility, bin
 - Bundled converter profile library.
 - Panel: Devices, Connections, Zones, Profile library, Diagnostics (with Looking Glass), Settings tabs. Ad-hoc device wizard.
 - HACS-installable single package containing backend + bundled panel JS.
+- Contention policies: `deny` (default) and `preempt`. The `share` policy is deferred to v1.x.
 
 ### v1.x
 
@@ -1299,6 +1335,15 @@ User-built configuration — devices, connections, zones, source visibility, bin
 - Improved error messages and richer diagnostics.
 - Expansion of mechanism set as devices in the wild reveal patterns the v1 set doesn't cover.
 - `media_player.join` exposure on virtual zones for streaming-source multi-room scenarios.
+- `share` contention policy for outputs already broadcasting compatibly.
+
+### v2.0
+
+- Topology visualization tab — read-mostly graph view of the system.
+- Sophisticated power policies (load shedding, scheduled, dependency timeouts).
+- Advanced contention policies (queueing, priority).
+- Fallback path resolution when primary path fails.
+- CEC-aware orchestration where the underlying HDMI-CEC integration provides observable state.
 
 ### Beyond
 
