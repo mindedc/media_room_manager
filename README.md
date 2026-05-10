@@ -369,6 +369,7 @@ When the user opens the panel's "Add Device" flow, the discovery service scans H
 
 Discovery operates in two stages: an **anchor match** against any entity in HA to identify the device and profile, followed by **additional output group matching** that walks the HA device registry for sibling entities to bind to the profile's remaining output groups.
 
+The discovery: section of the profile is optional. Profiles without them would simply be slected manually.
 
 #### Stage 1: anchor matching
 
@@ -715,7 +716,6 @@ interfaces:
     type: hdmi
     label: "HDMI OUT"
     output_group: main
-
   - id: toslink_out
     direction: output
     type: optical_audio
@@ -724,19 +724,35 @@ interfaces:
 
 dynamic_virtual_sources:
   source: source_list_minus_known
+  output_group: main
+  exclude:
+    - "Settings"
+    - "Search"
+    - "App Store"
+    - "Photos"
 
 discovery:
-  signals:
-    - kind: supported_features
-      values: [450487]
-      weight: 20
-    - kind: source_list_signature
-      includes_any: ["TV", "Computers", "Music", "App Store", "Arcade", "Movies", "Photos", "Podcasts", "Search", "Settings"]
-      weight: 50
-    - kind: attribute_constellation
-      includes: ["source_list", "media_content_id", "media_duration", "media_position", "media_position_updated_at", "media_title", "media_artist", "app_id", "app_name", "entity_picture", "friendly_name", "supported_features"]
-      weight: 50
-  match_threshold: 60
+  output_groups:
+    - output_group: main
+      is_discovery_anchor: true
+      match_threshold: 60
+      signals:
+        - kind: platform
+          domain: apple_tv
+          weight: 100
+        - kind: supported_features
+          values: [450487]
+          weight: 20
+        - kind: source_list_signature
+          includes_any: ["TV", "Computers", "Music", "App Store", "Arcade",
+                         "Movies", "Photos", "Podcasts", "Search", "Settings"]
+          weight: 50
+        - kind: attribute_constellation
+          includes: ["source_list", "media_content_id", "media_duration",
+                     "media_position", "media_position_updated_at", "media_title",
+                     "media_artist", "app_id", "app_name", "entity_picture",
+                     "friendly_name", "supported_features"]
+          weight: 50
 ```
 
 ### A multi-zone AVR (Marantz SR8015)
@@ -757,13 +773,24 @@ output_groups:
     selection_mechanism:
       kind: media_player_source
       expected_domain: media_player
-      expected_features: [turn_on, turn_off, select_source, volume_set, volume_mute]
+      expected_features:
+        - turn_on
+        - turn_off
+        - select_source
+        - volume_set
+        - volume_mute
     provides_roles: [power, volume, source_selection, metadata_source]
+
   - id: zone_2
     selection_mechanism:
       kind: media_player_source
       expected_domain: media_player
-      expected_features: [turn_on, turn_off, select_source, volume_set, volume_mute]
+      expected_features:
+        - turn_on
+        - turn_off
+        - select_source
+        - volume_set
+        - volume_mute
     provides_roles: [power, volume, source_selection, metadata_source]
 
 inputs_are_exclusive_per_output_group: [main, zone_2]
@@ -787,17 +814,83 @@ interfaces:
     label: "Blu-ray"
     routable_to_output_group: [main, zone_2]
 
+  - id: hdmi_4
+    direction: input
+    type: hdmi
+    label: "Game"
+    routable_to_output_group: [main, zone_2]
+
+  - id: hdmi_5
+    direction: input
+    type: hdmi
+    label: "Media Player"
+    routable_to_output_group: [main, zone_2]
+
+  - id: hdmi_6
+    direction: input
+    type: hdmi
+    label: "CD"
+    routable_to_output_group: [main, zone_2]
+
+  - id: hdmi_7
+    direction: input
+    type: hdmi
+    label: "AUX1"
+    routable_to_output_group: [main, zone_2]
+
+  - id: hdmi_8
+    direction: input
+    type: hdmi
+    label: "AUX2"
+    routable_to_output_group: [main, zone_2]
+
+  - id: optical_in_1
+    direction: input
+    type: optical_audio
+    label: "OPTICAL 1"
+    routable_to_output_group: [main, zone_2]
+
+  - id: optical_in_2
+    direction: input
+    type: optical_audio
+    label: "OPTICAL 2"
+    routable_to_output_group: [main, zone_2]
+
+  - id: coax_in_1
+    direction: input
+    type: coax_audio
+    label: "COAX 1"
+    routable_to_output_group: [main, zone_2]
+
+  - id: coax_in_2
+    direction: input
+    type: coax_audio
+    label: "COAX 2"
+    routable_to_output_group: [main, zone_2]
+
   - id: phono_in
     direction: input
     type: rca_audio
     label: "Phono"
-    routable_to_output_group: [main]   # phono not routable to zone 2
+    routable_to_output_group: [main]
 
-  - id: hdmi_main_out
+  - id: hdmi_main_out_1
     direction: output
     type: hdmi_audio_return
-    label: "HDMI MONITOR OUT"
+    label: "HDMI MONITOR OUT 1"
     output_group: main
+
+  - id: hdmi_main_out_2
+    direction: output
+    type: hdmi_audio_return
+    label: "HDMI MONITOR OUT 2"
+    output_group: main
+
+  - id: zone_2_hdmi_out
+    direction: output
+    type: hdmi
+    label: "ZONE 2 HDMI OUT"
+    output_group: zone_2
 
   - id: zone_2_rca_out
     direction: output
@@ -812,18 +905,43 @@ virtual_sources:
 
 dynamic_virtual_sources:
   source: source_list_minus_known
-  output_group: main   # HEOS streaming on main zone
+  output_group: main
+  exclude:
+    - "Internet Radio"
 
 discovery:
-  signals:
-    - kind: device_registry
-      manufacturer: "Marantz"
-      model_patterns: ["SR8015"]
-      weight: 100
-    - kind: integration_domain
-      domains: ["denonavr"]
-      weight: 50
-  match_threshold: 60
+  output_groups:
+    - output_group: main
+      is_discovery_anchor: true
+      match_threshold: 60
+      signals:
+        - kind: device_registry
+          manufacturer: "Marantz"
+          model_patterns: ["SR8015", "*SR8015*"]
+          weight: 100
+        - kind: platform
+          domain: denonavr
+          weight: 40
+        - kind: source_list_signature
+          includes_any: ["CBL/SAT", "Blu-ray", "Phono", "Media Player"]
+          weight: 30
+        - kind: sound_mode_list_signature
+          includes_any: ["STEREO", "DOLBY DIGITAL", "DTS SURROUND", "MULTI CH STEREO"]
+          weight: 50
+        - kind: attribute_constellation
+          includes: ["source_list", "sound_mode_list", "supported_features"]
+          weight: 50
+
+    - output_group: zone_2
+      match_threshold: 50
+      optional: true
+      signals:
+        - kind: platform
+          domain: denonavr
+          weight: 40
+        - kind: attribute_constellation
+          includes: ["source_list", "supported_features"]
+          weight: 30
 ```
 
 ### A multi-zone AVR with parallel HDMI outputs (Anthem MRX 740)
