@@ -385,8 +385,16 @@ discovery:
     - kind: source_list_signature
       includes_any: ["TV", "Computers", "Music"]
       weight: 10
+    - kind: friendly_name
+      includes: ["Apple TV"]
+      weight: 10
+    - kind: device_class
+      includes_any: ["tv"]
+      weight: 10
+    - kind: attribute_constellation
+      includes: ["source_list", "media_content_id", "media_duration", "media_position", "media_position_updated_at", "media_title", "media_artist", "app_id", "app_name", "entity_picture", "friendly_name", "supported_features"]
+      weight: 50
   match_threshold: 60
-  ambiguity_window: 30
 ```
 
 Signal kinds in v1:
@@ -395,8 +403,11 @@ Signal kinds in v1:
 - **`integration_domain`** — entity belongs to a listed HA integration domain. Medium.
 - **`supported_features`** — entity's `supported_features` bitmask is in the listed values. Multiple values accommodate drift across HA versions. Weak corroboration.
 - **`source_list_signature`** — entity's `source_list` contains specified values. Weak corroboration.
+- **`device_class`** — entity's `device_class` is equal to specified values. Weak corroboration.
+- **`friendly_name`** — entity's `friendly_name` attribute is equal to or conatins the specified string. Weak corroboration.
+- **`attribute_constellation`** — entity's available attributes match the list of attributes. Medium corroboration.
 
-The discovery service adds matched signals' weights, applies the threshold, and surfaces the result. The `ambiguity_window` catches cases where two profiles match similarly well — both are surfaced and the user picks. Confidence is shown in the UI.
+The discovery service adds matched signals' weights, applies the threshold, and surfaces the result. In the case where two profiles match similarly well both are surfaced and the user picks. Confidence score is shown in the UI.
 
 For multi-entity devices, when a user picks an auto-suggested AVR with multiple output groups, the panel can pre-fill bindings for each group if the discovery was confident.
 
@@ -509,16 +520,61 @@ External state changes — someone hits the AVR remote and changes the source �
 
 ## Power management
 
-Per-device flags (overrideable per device instance):
+## Power management
 
-- `always_on` — never powered off by the integration.
-- `auto_off_timeout` — power off this many seconds after the last zone using it goes idle.
-- `power_on_delay` — wait this long after power-on before issuing further commands.
-- `dependents` — devices that should be powered on before this one.
+Power behavior is declared in the profile via two fields: `power_handling` and `power_on_delay`.
+
+### `power_handling`
+
+Declares how the integration manages this device's power. One of:
+
+- **`discrete_capable`** — the device supports separate power-on and power-off commands (typical for IP-controlled devices and modern IR codes with discrete on/off codes). The integration powers the device on when needed and off when no longer needed by any zone.
+
+- **`toggle`** — the device only supports a single power-toggle command (common for older IR-controlled devices). The integration uses observed state to decide whether to send the toggle, falling back to commanded state when observed state isn't reliable.
+
+- **`always_on`** — the integration never powers this device off. Useful for devices with long boot cycles or that are shared across many frequently-used zones. The device is assumed to be on; no power commands are issued.
+
+- **`disabled`** — the integration does not manage this device's power at all. The user manages it externally (smart plug automation, manual control, etc.). No power commands are issued in either direction.
+
+### `power_on_delay`
+
+Number of seconds to wait after issuing power-on before sending further commands to the device. Some devices ignore input-selection or transport commands during their boot cycle. Defaults to `0` if omitted.
+
+Ignored when `power_handling` is `always_on` or `disabled`.
+
+### Examples
+
+A networked AVR with discrete on/off and a moderate boot time:
+
+```yaml
+power_handling: discrete_capable
+power_on_delay: 4
+```
+
+An older IR-controlled DVD player:
+
+```yaml
+power_handling: toggle
+power_on_delay: 6
+```
+
+A media streamer the user wants to keep always on:
+
+```yaml
+power_handling: always_on
+```
+
+A passive converter or a device with no controllable power:
+
+```yaml
+power_handling: disabled
+```
+
+### Per-instance overrides
+
+The user can override `power_handling` for their specific device instance through the panel. The most common case is changing a `discrete_capable` profile to `always_on` for a device they don't want auto-powered.
 
 The integration does not auto-flatten or override per-device settings on activation. Volume, brightness, picture mode, and similar settings on source devices are left as the user configured them.
-
-v1 implements basic power sequencing. Sophisticated policies are v2+.
 
 ## Path resolution and orchestration
 
@@ -585,6 +641,7 @@ schema_version: 1
 manufacturer: Apple
 model: Apple TV 4K
 category: source
+power_handling: discrete_capable
 
 output_groups:
   - id: main
@@ -610,24 +667,27 @@ interfaces:
     label: "HDMI OUT"
     output_group: main
 
+  - id: toslink_out
+    direction: output
+    type: optical_audio
+    label: "Toslink OUT"
+    output_group: main
+
 dynamic_virtual_sources:
   source: source_list_minus_known
-  output_group: main
 
 discovery:
   signals:
-    - kind: device_registry
-      manufacturer: "Apple"
-      model_patterns: ["Apple TV*"]
-      weight: 100
-    - kind: integration_domain
-      domains: ["apple_tv"]
-      weight: 50
     - kind: supported_features
-      values: [450487, 449463]
+      values: [450487]
       weight: 20
+    - kind: source_list_signature
+      includes_any: ["TV", "Computers", "Music", "App Store", "Arcade", "Movies", "Photos", "Podcasts", "Search", "Settings"]
+      weight: 50
+    - kind: attribute_constellation
+      includes: ["source_list", "media_content_id", "media_duration", "media_position", "media_position_updated_at", "media_title", "media_artist", "app_id", "app_name", "entity_picture", "friendly_name", "supported_features"]
+      weight: 50
   match_threshold: 60
-  ambiguity_window: 30
 ```
 
 ### A multi-zone AVR (Marantz SR8015)
@@ -640,6 +700,8 @@ schema_version: 1
 manufacturer: Marantz
 model: SR8015
 category: avr
+power_handling: discrete_capable
+power_on_delay: 4
 
 output_groups:
   - id: main
@@ -713,10 +775,6 @@ discovery:
       domains: ["denonavr"]
       weight: 50
   match_threshold: 60
-  ambiguity_window: 30
-
-power_metadata:
-  power_on_delay: 4
 ```
 
 ### A multi-zone AVR with parallel HDMI outputs (Anthem MRX 740)
