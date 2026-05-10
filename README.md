@@ -365,40 +365,73 @@ Profiles assert canonical defaults; instances remap when reality differs.
 
 ### Auto-discovery
 
-When the user opens the panel's "Add Device" flow, the discovery service scans the HA installation and suggests appropriate profiles. Suggestions are confidence-ranked and the user always confirms — there is no automatic instantiation.
+When the user opens the panel's "Add Device" flow, the discovery service scans Home Assistant's entity registry and device registry and suggests appropriate profiles. Suggestions are confidence-ranked and the user always confirms — there is no automatic instantiation.
 
-Each profile may declare a `discovery` block listing signals that match the device. The discovery service scores each candidate entity against each profile's signals, weighted by reliability:
+Discovery operates in two stages: an **anchor match** against any entity in HA to identify the device and profile, followed by **additional output group matching** that walks the HA device registry for sibling entities to bind to the profile's remaining output groups.
+
+
+#### Stage 1: anchor matching
+
+The discovery service iterates the HA entity registry, scoring each entity against each profile's anchor signals. The profile's `discovery.anchor` block declares which output group is the anchor (typically `main`) and the signals used to match it. Signals are weighted; the service sums matched weights and applies the `match_threshold`. Entities scoring above the threshold are anchor candidates.
+
+#### Stage 2: additional output group matching
+
+For each anchor candidate, the discovery service looks up its HA device registry `device_id` and retrieves sibling entities under the same device (including disabled entities). For each `additional_output_groups` entry in the profile, the service scores the sibling entities against that entry's signals and assigns the best match — or, when no sibling meets the threshold and the entry is marked `optional`, leaves the output group unbound.
+
+Disabled-by-default zone entities (such as a zone 2 entity for an AVR integration) are still considered as sibling candidates. When discovery binds a disabled entity to an output group, the suggestion notes the disabled state so the user can enable it in their integration's settings before confirming.
+
+When no sibling matches a required additional output group, the suggestion is still presented but flagged: "Zone 2 entity not found — please bind manually." User assignment is the always-available fallback.
+
 
 ```yaml
+
 discovery:
-  signals:
-    - kind: device_registry
-      manufacturer: "Apple"
-      model_patterns: ["Apple TV*"]
-      weight: 100
-    - kind: integration_domain
-      domains: ["apple_tv"]
-      weight: 50
-    - kind: supported_features
-      values: [450487, 449463]
-      weight: 20
-    - kind: source_list_signature
-      includes_any: ["TV", "Computers", "Music"]
-      weight: 10
-    - kind: friendly_name
-      includes: ["Apple TV"]
-      weight: 10
-    - kind: device_class
-      includes_any: ["tv"]
-      weight: 10
-    - kind: sound_mode_list_signature
-      matches: ["STEREO", "DOLBY_PLII_IIx_MOVIE", "DOLBY_PLII_IIx_MUSIC", "DOLBY_PLII_IIx_GAME", "DOLBY_PL", "DTS_NEO_6_CINEMA", "DTS_NEO_6_MUSIC", "MCH_STEREO"]
-      weight: 50
-    - kind: attribute_constellation
-      includes: ["source_list", "media_content_id", "media_duration", "media_position", "media_position_updated_at", "media_title", "media_artist", "app_id", "app_name", "entity_picture", "friendly_name", "supported_features"]
-      weight: 50
-  match_threshold: 60
+  output_groups:
+    - output_group: main
+      is_discovery_anchor: true
+      match_threshold: 60
+      signals:
+        - kind: device_registry
+          manufacturer: "Apple"
+          model_patterns: ["Apple TV*"]
+          weight: 100
+        - kind: platform
+          domain: apple_tv
+          weight: 100
+        - kind: supported_features
+          values: [450487, 449463]
+          weight: 20
+        - kind: source_list_signature
+          includes_any: ["TV", "Computers", "Music"]
+          weight: 10
+        - kind: friendly_name
+          friendly_name_patterns: ["Apple TV"]
+          weight: 10
+        - kind: device_class
+          matches: ["tv"]
+          weight: 10
+        - kind: sound_mode_list_signature
+          matches: ["STEREO", "DOLBY_PLII_IIx_MOVIE", "DOLBY_PLII_IIx_MUSIC", "DOLBY_PLII_IIx_GAME", "DOLBY_PL", "DTS_NEO_6_CINEMA", "DTS_NEO_6_MUSIC", "MCH_STEREO"]
+          weight: 50
+        - kind: attribute_constellation
+          includes: ["source_list", "media_content_id", "media_duration", "media_position", "media_position_updated_at", "media_title", "media_artist", "app_id", "app_name", "entity_picture", "friendly_name", "supported_features"]
+          weight: 50
+    - output_group: zone_2
+      match_threshold: 60
+      optional: true
+      signals:
+        - kind: supported_features
+          values: [135052]
+          weight: 50
+        - kind: source_list_signature
+          includes: ["FOLLOW_ZONE_1"]
+          weight: 50
+        - kind: attribute_constellation
+          includes: ["source_list", "supported_features"]
+          weight: 30
 ```
+Exactly one output group entry must be flagged `is_discovery_anchor: true`. For single-output-group profiles (Apple TV, Blu-ray players, etc.), the one output group entry carries the anchor flag and the `output_groups` list has just one item.
+
 
 Signal kinds in v1:
 
@@ -416,6 +449,18 @@ The discovery service adds matched signals' weights, applies the threshold, and 
 For multi-entity devices, when a user picks an auto-suggested AVR with multiple output groups, the panel can pre-fill bindings for each group if the discovery was confident.
 
 Profiles without a `discovery` block are still valid — they don't get auto-suggested, but users can find them through search.
+
+#### Implementation notes
+
+- Discovery scoring reads from HA's entity registry (`platform`, `device_id`, registered `capabilities`) and device registry (`manufacturer`, `model`) where possible, falling back to entity state attributes (`source_list`, `sound_mode_list`, `device_class`, `friendly_name`) for fields not in the registry. The `device_registry` and `platform` signals are registry-backed and stable; the rest read from state.
+
+- The integration uses `async_entries_for_device(ent_reg, device_id, include_disabled_entities=True)` for sibling retrieval so disabled entities remain visible to discovery.
+
+- Discovery returns a ranked list of suggestions whose anchor scored above their respective `match_threshold`. The Add Device UI presents all candidates ordered by score; the user picks. Discovery never silently auto-instantiates.
+
+- Multi-binding suggestions render as a single device with pre-filled bindings for each matched output group. The user can override any individual binding before confirming. When an additional output group could not be matched, the suggestion shows that slot as unbound with a "Bind manually" affordance.
+
+- Profile-side discovery hints captured during the ad-hoc device wizard are baked into locally-saved profiles so they benefit from auto-discovery on the same user's system thereafter.
 
 ### Repairs
 
