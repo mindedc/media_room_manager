@@ -1133,7 +1133,7 @@ interfaces:
   # ... out_2 through out_8
 ```
 
-### An HDFury Diva (output groups with audio extraction)
+### A HDFury Diva (output groups with audio extraction)
 
 Two output groups (TX0, TX1). The TX0 group includes the TX0 HDMI output plus the audio extraction outputs (HDMI extraction, optical, RCA). All TX0 outputs share the same active input.
 
@@ -1169,7 +1169,22 @@ interfaces:
     type: hdmi
     label: "Input 1"
     routable_to_output_group: [tx0, tx1]
-  # ...
+  - id: hdmi_in_2
+    direction: input
+    type: hdmi
+    label: "Input 2"
+    routable_to_output_group: [tx0, tx1]
+  - id: hdmi_in_3
+    direction: input
+    type: hdmi
+    label: "Input 3"
+    routable_to_output_group: [tx0, tx1]
+  - id: hdmi_in_4
+    direction: input
+    type: hdmi
+    label: "Input 4"
+    routable_to_output_group: [tx0, tx1]
+
 
   - id: tx0_hdmi
     direction: output
@@ -1197,7 +1212,7 @@ interfaces:
 
   - id: tx1_hdmi
     direction: output
-    type: hdmi_audio_return
+    type: hdmi
     label: "TX1"
     output_group: tx1
 ```
