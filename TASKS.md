@@ -8,7 +8,7 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 ---
 
-## Active phase: Phase 6 — Entities and devices
+## Active phase: Phase 7 — Services (state tracker, discovery, repair)
 
 ### Phase 0 tasks
 
@@ -185,27 +185,27 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 ### Phase 6 tasks
 
-- [ ] **6.1** Create `entities/__init__.py` and `entities/zone_media_player.py`. Implement the per-zone `MediaPlayerEntity` subclass. Stub state and supported_features for now; expand in subsequent tasks.
+- [x] **6.1** Create `entities/__init__.py` and `entities/zone_media_player.py`. Implement the per-zone `MediaPlayerEntity` subclass. Stub state and supported_features for now; expand in subsequent tasks.
 
-- [ ] **6.2** Implement `supported_features` static computation. At zone configuration time, compute the union of features across all devices that could hold a role in any path through this zone. Cache and expose as the entity's `supported_features`. Tests.
+- [x] **6.2** Implement `supported_features` static computation. At zone configuration time, compute the union of features across all devices that could hold a role in any path through this zone. Cache and expose as the entity's `supported_features`. Tests.
 
-- [ ] **6.3** Implement source list computation from source visibility config. The entity's `source_list` is the visible-sources list for the zone. `select_source` triggers orchestrator activation. Tests.
+- [x] **6.3** Implement source list computation from source visibility config. The entity's `source_list` is the visible-sources list for the zone. `select_source` triggers orchestrator activation. Tests.
 
-- [ ] **6.4** Implement transport command pass-through. `media_play`, `media_pause`, `media_stop`, etc., on the zone entity route to the active source's `transport` role-holder via the orchestrator. Tests with mock active sources.
+- [x] **6.4** Implement transport command pass-through. `media_play`, `media_pause`, `media_stop`, etc., on the zone entity route to the active source's `transport` role-holder via the orchestrator. Tests with mock active sources.
 
-- [ ] **6.5** Implement volume command pass-through. `volume_set`, `volume_up`, `volume_down`, `volume_mute` on the zone entity route to the volume authority (pinned per zone). Tests.
+- [x] **6.5** Implement volume command pass-through. `volume_set`, `volume_up`, `volume_down`, `volume_mute` on the zone entity route to the volume authority (pinned per zone). Tests.
 
-- [ ] **6.6** Implement metadata pass-through. The zone entity subscribes to the `metadata_source` role-holder's state changes and surfaces `media_title`, `media_artist`, `media_image_url`, etc., as its own attributes. When the active source changes, the subscription moves. Tests.
+- [x] **6.6** Implement metadata pass-through. The zone entity subscribes to the `metadata_source` role-holder's state changes and surfaces `media_title`, `media_artist`, `media_image_url`, etc., as its own attributes. When the active source changes, the subscription moves. Tests.
 
-- [ ] **6.7** Implement state computation: `off`, `idle`, `playing`, `paused`, `unavailable` based on orchestrator and underlying state. `error_detail` attribute on errors. Tests.
+- [x] **6.7** Implement state computation: `off`, `idle`, `playing`, `paused`, `unavailable` based on orchestrator and underlying state. `error_detail` attribute on errors. Tests.
 
-- [ ] **6.8** Implement helper entities for `selectable_exclusive` zones: `select.<zone>_display` and per-sink `switch.<zone>_<sink>`. Bidirectional sync — toggling a switch updates the select; changing the select updates switches; both trigger orchestrator. Tests.
+- [x] **6.8** Implement helper entities for `selectable_exclusive` zones: `select.<zone>_display` and per-sink `switch.<zone>_<sink>`. Bidirectional sync — toggling a switch updates the select; changing the select updates switches; both trigger orchestrator. Tests.
 
-- [ ] **6.9** Implement `binary_sensor.<device>_in_use` for shared physical devices. Only created for devices reachable from more than one zone. Updates as orchestrator state changes. Tests.
+- [x] **6.9** Implement `binary_sensor.<device>_in_use` for shared physical devices. Only created for devices reachable from more than one zone. Updates as orchestrator state changes. Tests.
 
-- [ ] **6.10** Register HA Device Registry entries for each Media Room Manager zone and each orchestrated physical device. Associate appropriate entities under each device entry. Tests with HA's device registry mocks.
+- [x] **6.10** Register HA Device Registry entries for each Media Room Manager zone and each orchestrated physical device. Associate appropriate entities under each device entry. Tests with HA's device registry mocks.
 
-- [ ] **6.11** Integration test: configure a multi-zone system, verify all expected entities are registered under the correct device entries, simulate state changes, and assert entity behavior. Mark Phase 6 complete.
+- [x] **6.11** Integration test: configure a multi-zone system, verify all expected entities are registered under the correct device entries, simulate state changes, and assert entity behavior. Mark Phase 6 complete.
 
 ---
 
