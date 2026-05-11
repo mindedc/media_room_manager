@@ -42,7 +42,7 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 - [ ] **1.2** Add dataclasses for `OutputGroup`, `Connection`, `VirtualSource`, `Device`. Unit tests for each.
 
-- [ ] **1.3** Add dataclasses for `Zone` (with `sink_mode` enum), `SourceVisibilitySelection`, `InstanceBinding` (entity registry id + per-instance remaps), and any supporting types. Unit tests.
+- [ ] **1.3** Add dataclasses for `Zone` (with `sink_mode` enum: `single`, `simultaneous`, `selectable_exclusive`), `SourceVisibilitySelection`, `InstanceBinding` (entity registry id + per-instance remaps), and any supporting types. Unit tests.
 
 - [ ] **1.4** Create `graph/schema.py` with `voluptuous` validators for each dataclass. Validators should be reversible: `validator(value).is_valid` and round-trip through dict serialization. Tests covering positive and negative cases for each.
 
@@ -64,31 +64,40 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 ### Phase 2 tasks
 
-- [ ] **2.1** Create `profiles/schema.py` defining the full profile YAML schema in `voluptuous`. Cover: `profile_id`, `schema_version`, `manufacturer`, `model`, `category`, `output_groups` (with selection_mechanism, expected_*, provides_roles), `aux_entities`, `interfaces` (with id, direction, type, label, output_group, routable_to_output_group), `virtual_sources`, `dynamic_virtual_sources`, `inputs_are_exclusive_per_output_group`, `exclusive_outputs`, `discovery`, `power_metadata`. Document the schema in `docs/profile-schema.md`.
+- [ ] **2.1** Create `profiles/schema.py` defining the full profile YAML schema in `voluptuous`. Cover:
+  - Top-level: `profile_id`, `schema_version`, `manufacturer`, `model`, `category`, `power_handling` (one of `discrete_capable`, `toggle`, `always_on`, `disabled`), `power_on_delay` (integer seconds, defaults to 0), `exclusive_outputs` (boolean, optional).
+  - `output_groups` list: each with `id`, optional `selection_mechanism` (with `kind`, `expected_domain`, capability expectations like `expected_features`, `expected_options`, `expected_commands`), `provides_roles`, and optional `role_operations` for non-`media_player`-bound groups.
+  - `inputs_are_exclusive_per_output_group` list of output_group ids.
+  - `aux_entities` list: each with `id`, `expected_domain`, and capability expectations.
+  - `interfaces` list: each with `id`, `direction`, `type`, `label`. Outputs declare `output_group`; inputs declare `routable_to_output_group` (list of output_group ids).
+  - `virtual_sources` list: each with `id`, `label`, `routable_to_output_group`.
+  - `dynamic_virtual_sources` block: `source` (currently only `source_list_minus_known`), `output_group`, optional `exclude` list.
+  - `discovery` block (optional): `output_groups` list, each with `output_group`, optional `is_discovery_anchor: true`, `match_threshold`, optional `optional: true`, `signals` list.
+  - Document the schema in `docs/profile-schema.md`.
 
 - [ ] **2.2** Create `profiles/loader.py`. Function: `load_profile_yaml(path: Path) -> Profile`. Reads YAML, validates against schema, returns a typed `Profile` dataclass (defined in `profiles/types.py`). Tests against minimal valid and invalid examples.
 
 - [ ] **2.3** Create `profiles/registry.py`. `ProfileRegistry` loads bundled profiles from `profiles/bundled/` at integration startup. Exposes `get(profile_id) -> Profile | None` and `list_all() -> list[Profile]`. Layered loading order: local > community-fetched > bundled (only bundled implemented in this phase). Tests.
 
-- [ ] **2.4** Author starter profile #1: Apple TV 4K (`profiles/bundled/apple/apple-tv-4k.yaml`). Match the README example exactly. Verify it loads.
+- [ ] **2.4** Author starter profile #1: Apple TV 4K (`profiles/bundled/apple/apple-tv-4k.yaml`). Match the README example. `power_handling: discrete_capable`. Includes `dynamic_virtual_sources` with `exclude` list. Discovery block with anchor on `main`. Verify it loads.
 
-- [ ] **2.5** Author starter profile #2: a generic IR-controlled Blu-ray player. Use `remote_command` mechanism examples per the README.
+- [ ] **2.5** Author starter profile #2: Sony DVP-NS500V (IR-controlled Blu-ray). `power_handling: toggle`. Uses `remote_command` mechanism in `role_operations`. Aux entity for the IR blaster. Match the README example.
 
-- [ ] **2.6** Author starter profile #3: Marantz SR8015 (multi-zone AVR). Match the README example. Include all interfaces, both output groups, virtual tuner, dynamic_virtual_sources, discovery block.
+- [ ] **2.6** Author starter profile #3: a single-zone AVR — pick a representative model (e.g., Denon AVR-X1700H) and structure it cleanly. `power_handling: discrete_capable`. One output group with `media_player_source` mechanism. Include `discovery` block.
 
-- [ ] **2.7** Author starter profile #4: Anthem MRX 740 (AVR with parallel HDMI outputs). Demonstrate two outputs in the same `main` output group plus separate `zone_2` outputs.
+- [ ] **2.7** Author starter profile #4: Marantz SR8015. Match the README example exactly. Two output groups (`main` and `zone_2`), `inputs_are_exclusive_per_output_group`, static `tuner` virtual source, `dynamic_virtual_sources` for HEOS on `main`. Discovery block with anchor on `main` and optional sibling for `zone_2`.
 
-- [ ] **2.8** Author starter profile #5: a single-zone AVR (e.g., Denon AVR-X1700H or similar). Simpler than the Marantz; serves as a reference for the common case.
+- [ ] **2.8** Author starter profile #5: Anthem MRX 740. Two output groups with parallel HDMI outputs both belonging to `main`. Discovery block. Match the README example.
 
-- [ ] **2.9** Author starter profile #6: Monoprice Blackbird 8x8 matrix. Each output is its own output group, using `select_entity` mechanism.
+- [ ] **2.9** Author starter profile #6: Monoprice Blackbird 8x8 matrix. Each output is its own output group of size 1 with `select_entity` mechanism. Aux entity for the power switch. Match the README example.
 
-- [ ] **2.10** Author starter profile #7: HDFury Diva (or Vertex). Two output groups (TX0, TX1) with audio extraction outputs in TX0's group.
+- [ ] **2.10** Author starter profile #7: HDFury Diva. Two output groups (`tx0`, `tx1`) with audio extraction outputs in TX0's group. Power switch aux entity. Discovery block.
 
-- [ ] **2.11** Author starter profile #8: Lumagen Radiance Pro. Single output group, `exclusive_outputs: true`.
+- [ ] **2.11** Author starter profile #8: Lumagen Radiance Pro. Single output group, `exclusive_outputs: true`, `inputs_are_exclusive_per_output_group: [main]`. Match the README example.
 
-- [ ] **2.12** Author starter profile #9: a generic HDMI 1×4 splitter / distribution amp. One output group, no selection_mechanism (passive transit).
+- [ ] **2.12** Author starter profile #9: a generic HDMI 1×4 splitter / distribution amp. One output group with no `selection_mechanism` (passive transit). `power_handling: disabled`.
 
-- [ ] **2.13** Author starter profile #10: a generic HDMI audio extractor. Passive converter category. One output group with no selection_mechanism, four outputs (HDMI passthrough, HDMI audio extraction, optical, RCA).
+- [ ] **2.13** Author starter profile #10: generic HDMI audio extractor. Passive converter category. One output group with no `selection_mechanism`, four outputs (HDMI passthrough, HDMI audio extraction, optical, RCA). `power_handling: disabled`. Match the README example.
 
 - [ ] **2.14** Add WebSocket commands `media_room_manager/list_profiles` and `media_room_manager/get_profile`. Each returns serialized profile data. Tests.
 
@@ -110,7 +119,7 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 - [ ] **3.5** Implement `RemoteCommandAdapter` in `adapters/remote_command.py`. Calls `remote.send_command` with the configured command name. Supports command sequences with delays. Tests including sequence/delay behavior.
 
-- [ ] **3.6** Implement `ServiceCallAdapter` in `adapters/service_call.py`. Calls an arbitrary HA service with statically-enumerated parameters. Implements the `$value` sentinel substitution: any field whose value is exactly `"$value"` is replaced with the operation's input value at call time. Tests covering positive cases and rejection of any other templating attempts.
+- [ ] **3.6** Implement `ServiceCallAdapter` in `adapters/service_call.py`. Calls an arbitrary HA service with statically-enumerated parameters. Implements the `$value` sentinel substitution: any field whose value is exactly `"$value"` is replaced with the operation's input value at call time. Tests covering positive cases and rejection of any other templating attempts (e.g., `"prefix-$value"` is **not** substituted; only the literal string `"$value"` is).
 
 - [ ] **3.7** Create `adapters/registry.py` with an `AdapterRegistry` that maps mechanism kind strings to adapter instances. Used by the orchestrator. Tests.
 
@@ -136,11 +145,13 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 - [ ] **4.7** Handle virtual sources: when the source is a virtual source, the "path" is the source's containing device + virtual source selection. The audio path terminates at the volume authority (which may be a different device entirely if the virtual source is upstream of an AVR). Tests.
 
-- [ ] **4.8** Add input-side and output-side contention detection. Path resolver checks against currently-active paths and reports contention as part of its result. Tests with two zones competing for an AVR's input.
+- [ ] **4.8** Add `exclusive_outputs` tracking. The resolver records which output of an `exclusive_outputs` device is being used in the resolved path. This is captured in the resolver's output for the orchestrator's contention tracking — the resolver does not refuse to compute paths through `exclusive_outputs` devices and does not command output switching.
 
-- [ ] **4.9** Implement WebSocket command `media_room_manager/resolve_path` that takes (zone_id, source_id, sink_id?) and returns the structured resolver output. This powers the Looking Glass. Tests.
+- [ ] **4.9** Add input-side and output-side contention detection. Path resolver checks against currently-active paths and reports contention as part of its result. Includes input-side from `inputs_are_exclusive_per_output_group`, output-side from per-output `output_selection`, and output-side from `exclusive_outputs` devices. Tests with two zones competing for an AVR's input and two zones competing for a Lumagen's outputs.
 
-- [ ] **4.10** Build comprehensive integration tests using a fixture system that defines small example configurations (Marantz + Apple TV, a sports-bar setup with matrix, a media room with TV+projector, etc.) and asserts resolver output for various source-zone combinations. Mark Phase 4 complete.
+- [ ] **4.10** Implement WebSocket command `media_room_manager/resolve_path` that takes (zone_id, source_id, sink_id?) and returns the structured resolver output. This powers the Looking Glass. Tests.
+
+- [ ] **4.11** Build comprehensive integration tests using a fixture system that defines small example configurations (Marantz + Apple TV, a sports-bar setup with matrix, a media room with TV+projector, an HDFury Diva with audio extraction to a stereo amp, a Lumagen feeding two displays) and asserts resolver output for various source-zone combinations. Mark Phase 4 complete.
 
 ---
 
@@ -152,19 +163,19 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 - [ ] **5.2** Create `orchestrator/__init__.py` and `orchestrator/orchestrator.py`. Skeleton class with `async_activate_zone(zone_id, source_id, sink_id?)` and `async_deactivate_zone(zone_id)`. Wire it to the path resolver, role resolver, and adapter registry.
 
-- [ ] **5.3** Implement power-on sequencing. The orchestrator computes all devices in the active path, powers them on in dependency order (per profile's `power_metadata.dependents`), respects `power_on_delay`. Tests with mock devices.
+- [ ] **5.3** Implement power-on sequencing respecting `power_handling`. For `discrete_capable`, issue power_on commands. For `toggle`, use observed state (or commanded-state fallback from the state tracker) to decide whether to issue the toggle. For `always_on` and `disabled`, issue no commands. Respect `power_on_delay`. Tests with mock devices for each `power_handling` value.
 
-- [ ] **5.4** Implement input-selection sequencing. From sink toward source, set each transit device's input via the adapter. Shared transit devices configured once. Tests.
+- [ ] **5.4** Implement input-selection sequencing. From sink toward source, set each transit device's input via the relevant output group's selection mechanism. Shared transit devices configured once. For `exclusive_outputs` devices, the orchestrator does **not** command output switching — it commands input selection and trusts the user has externally configured the active output. Tests.
 
 - [ ] **5.5** Implement virtual-source selection. If the active source is a virtual source, after path setup, select it on its containing device. Tests.
 
 - [ ] **5.6** Implement transport activation. After path setup, issue a transport command (typically `play`) at the source if it provides the transport role. Tests.
 
-- [ ] **5.7** Implement deactivation sequencing. On zone deactivation, mark devices in the path as no-longer-needed-by-this-zone. Devices still in use by other zones stay on. Devices no longer needed are powered off, subject to `always_on` and `auto_off_timeout`. Tests with shared devices and multi-zone scenarios.
+- [ ] **5.7** Implement deactivation sequencing. On zone deactivation, mark devices in the path as no-longer-needed-by-this-zone. Devices still in use by other zones stay on. Devices no longer needed are powered off (respecting `power_handling`). Tests with shared devices and multi-zone scenarios.
 
 - [ ] **5.8** Implement retry policy and failure surfacing. Each step has a configurable retry count. Hard failures result in `state: unavailable` plus `error_detail` on the zone media_player. Tests injecting failures.
 
-- [ ] **5.9** Implement contention enforcement. When activation requires a contended resource, apply the zone's policy (`deny` or `preempt`; `share` deferred to v1.x). For `preempt`, tear down conflicting paths first. Tests.
+- [ ] **5.9** Implement contention enforcement for `deny` and `preempt` policies. When activation requires a contended resource, apply the zone's policy. For `preempt`, tear down conflicting paths first. **The `share` policy is v1.x and is not implemented in this phase** — profiles or zone configurations specifying `share` should be validated against and rejected with a clear error message in v1.0. Tests for both `deny` and `preempt` covering input-side, output-side, and `exclusive_outputs` contention.
 
 - [ ] **5.10** End-to-end integration test: load a multi-device profile set, define a graph and a zone, activate the zone, assert correct service calls were made in the correct order. Mark Phase 5 complete.
 
@@ -206,19 +217,34 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 - [ ] **7.2** Wire state tracker re-evaluation on external changes. If an underlying entity changes state outside an orchestrator-issued command, the affected zone's state recomputes. Tests with simulated external changes.
 
-- [ ] **7.3** Create `services/discovery.py`. Implements the constellation matching algorithm for profile `discovery` blocks. Signal kinds: `device_registry`, `integration_domain`, `supported_features`, `source_list_signature`. Returns ranked profile suggestions for any candidate entity. Tests with all four signal kinds.
+- [ ] **7.3** Create `services/discovery.py`. Implement the eight signal scoring functions:
+  - `device_registry` — read `dev_reg.async_get(entity.device_id)` and match `manufacturer` and `model_patterns`.
+  - `platform` — read `entity_registry_entry.platform` and match `domain`.
+  - `supported_features` — read entity state `supported_features` and match against `values` list.
+  - `source_list_signature` — read entity state `source_list` and match with `includes_any`, `includes`, or `matches` operators.
+  - `sound_mode_list_signature` — read entity state `sound_mode_list` and match with same operators.
+  - `device_class` — read entity state `device_class` (or registry `original_device_class`) and match against `matches` list.
+  - `friendly_name` — read entity state `friendly_name` and match against `friendly_name_patterns` (substring match).
+  - `attribute_constellation` — read entity state attribute keys (presence, not values) and verify all keys in `includes` are present.
+  - Each scoring function returns the matched weight (or 0 if no match). Tests per signal kind.
 
-- [ ] **7.4** Implement scoring with weights, threshold, and ambiguity_window. Tests covering: high-confidence match, low-confidence match below threshold, ambiguous matches within the window.
+- [ ] **7.4** Implement two-stage discovery in `services/discovery.py`:
+  - **Stage 1 (anchor matching):** for each profile with a `discovery` block, find the output group entry flagged `is_discovery_anchor: true`. Iterate `ent_reg.entities.values()` for enabled entities. For each entity, score against the anchor signals, sum weights, compare against the anchor output group's `match_threshold`. Entities above threshold are anchor candidates.
+  - **Stage 2 (sibling matching):** for each anchor candidate, retrieve siblings via `async_entries_for_device(ent_reg, entity.device_id, include_disabled_entities=True)`. For each other output group in the profile's discovery block, score each sibling against that output group's signals, apply that group's `match_threshold`. Assign the best-matching sibling. If no sibling meets the threshold and the entry is marked `optional: true`, leave the output group unbound; otherwise flag the unmatched required output group in the suggestion.
+  - Return a ranked list of `DiscoverySuggestion` objects, each containing the matched profile, the anchor binding, and a dict of `output_group_id → entity_id | None` for sibling bindings.
+  - Tests covering: high-confidence single-output-group match (Apple TV), high-confidence multi-output-group match with both sibling bindings (Marantz), optional sibling unbound (zone 2 entity disabled), multiple profiles surfaced when ambiguous, sub-threshold candidates filtered out.
 
-- [ ] **7.5** Add `media_room_manager/discover_profiles_for_entity` WebSocket command. Returns ranked suggestions for a given entity. Tests.
+- [ ] **7.5** Add WebSocket command `media_room_manager/discover_profiles` that runs full two-stage discovery and returns the ranked suggestions. Add `media_room_manager/discover_profiles_for_entity` for inspecting matches against a specific entity (useful for debugging and the ad-hoc wizard). Tests.
 
-- [ ] **7.6** Implement dynamic-virtual-source rediscovery. When a bound entity's `source_list` changes, the discovery service recomputes the dynamic virtual sources for the relevant device's output groups. Affects the candidate pool for source visibility. Tests.
+- [ ] **7.6** Implement dynamic-virtual-source rediscovery. When a bound entity's `source_list` changes, the discovery service recomputes the dynamic virtual sources for the relevant device's output groups, subtracting known physical interfaces, static virtual sources, and `exclude` list entries. The remainder is the dynamic source candidate pool. Tests.
 
-- [ ] **7.7** Create `services/repair.py`. Observes events and emits HA repairs. Cases: disappeared dynamic source previously enabled, source-list expectations broken, path no longer resolves, bound entity removed. Implement each as a separate repair handler with resolution flow. Tests for each case.
+- [ ] **7.7** Surface disabled-entity bindings in suggestions. When the discovery service binds a disabled entity to an output group via sibling matching, the suggestion includes a flag and human-readable note indicating the disabled state. The panel will display this so the user can enable the entity in their integration before confirming. Tests.
 
-- [ ] **7.8** Newly discovered dynamic sources are *not* repairs. Surface them as a passive panel indication via the WebSocket subscription. Tests.
+- [ ] **7.8** Create `services/repair.py`. Observes events and emits HA repairs. Cases: disappeared dynamic source previously enabled, source-list expectations broken, path no longer resolves, bound entity removed. Implement each as a separate repair handler with resolution flow. Tests for each case.
 
-- [ ] **7.9** Integration test: bootstrap a fake HA environment with mock integrations and entities, run discovery, simulate disappearance of an enabled source, assert the correct repair fires with correct resolution options. Mark Phase 7 complete.
+- [ ] **7.9** Newly discovered dynamic sources are **not** repairs. Surface them as a passive panel indication via the WebSocket subscription. Tests.
+
+- [ ] **7.10** Integration test: bootstrap a fake HA environment with mock integrations and entities, run discovery, assert correct suggestions are returned with correct bindings. Test the disappearance case to assert the correct repair fires with correct resolution options. Mark Phase 7 complete.
 
 ---
 
@@ -242,7 +268,7 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 - [ ] **8.8** Implement `subscribe_diagnostics` for the panel's diagnostics tab live data. Tests.
 
-- [ ] **8.9** Design and implement the ad-hoc profile creation flow as a multi-step WebSocket interaction. The user walks through declaring interfaces, output groups (and their mechanisms), and capturing discovery hints from the bound entity. Resulting profile is saved locally to `<config>/media_room_manager/profiles/`. Tests.
+- [ ] **8.9** Design and implement the ad-hoc profile creation flow as a multi-step WebSocket interaction. The user walks through declaring interfaces, output groups (and their mechanisms), and capturing discovery hints from the bound entity. The wizard captures `platform`, manufacturer/model from device registry, and distinguishing attributes at binding time so the locally-saved profile can be auto-discovered later. Resulting profile is saved to `<config>/media_room_manager/profiles/`. Tests.
 
 - [ ] **8.10** Document all WebSocket commands added in this phase in `docs/websocket-api.md`. Include versioning notes. Mark Phase 8 complete.
 
@@ -260,7 +286,11 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 - [ ] **9.4** Implement the Devices tab: device cards, list view, "Add Device" button.
 
-- [ ] **9.5** Implement the "Add Device" flow: discovery suggestions first, library search second, ad-hoc wizard third. Each path produces a device added to the graph.
+- [ ] **9.5** Implement the "Add Device" flow:
+  - Discovery suggestions first. Multi-output-group suggestions render as a single device with pre-filled bindings for each output group. Unbound output groups (where sibling matching failed) appear with a "Bind manually" affordance. Disabled-entity bindings are flagged with a note about enabling the entity in the underlying integration.
+  - Library search second.
+  - Ad-hoc wizard third.
+  - Each path produces a device added to the graph.
 
 - [ ] **9.6** Implement the device editor modal: bind entities to output group mechanisms and aux entities, capability filtering, per-instance label remap UI.
 
@@ -270,7 +300,7 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 - [ ] **9.9** Implement the zone editor: sink mode selection (with helper entity creation for `selectable_exclusive`), sink picker, volume authority pinning.
 
-- [ ] **9.10** Implement the dual-list source visibility selector: candidate pool on the left, visible list on the right, search and reorder, per-zone display name overrides.
+- [ ] **9.10** Implement the dual-list source visibility selector: candidate pool on the left (three categories — physical, static virtual, dynamic virtual), visible list on the right, search and reorder, per-zone display name overrides.
 
 - [ ] **9.11** Mobile-responsive testing. Cards-with-modals interaction pattern works on narrow viewports.
 
@@ -292,11 +322,11 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 - [ ] **10.5** Implement live diagnostic cards on the Diagnostics tab: active zones, active paths, observed-vs-commanded mismatches, recent orchestration events. Subscribes to `subscribe_diagnostics`.
 
-- [ ] **10.6** Implement the Looking Glass parent card: header with Zone, Source, Display dropdowns. Display dropdown appears conditionally based on the selected zone's sink mode.
+- [ ] **10.6** Implement the Looking Glass parent card: header with Zone, Source, Display dropdowns. Display dropdown appears conditionally based on the selected zone's sink mode. For `selectable_exclusive` zones, lists each sink. For `simultaneous` zones, lists each sink plus an "All (simultaneous)" default. The audio card is unaffected by Display selection.
 
-- [ ] **10.7** Implement the Looking Glass video and audio path cards. Side-by-side on wide viewports, stacked vertically on narrow. Source at top, transit devices in middle rows, endpoint at bottom. Branching support for `simultaneous` zones.
+- [ ] **10.7** Implement the Looking Glass video and audio path cards. Side-by-side on wide viewports, stacked vertically on narrow. Source at top, transit devices in middle rows, endpoint at bottom. Branching support for `simultaneous` zones with "All" selected. Power state is not shown. Audio path always terminates at the volume authority.
 
-- [ ] **10.8** Wire the Looking Glass to the `resolve_path` WebSocket command. Re-runs on selection change. Surfaces resolution failures clearly. Includes the passive note for `exclusive_outputs` devices.
+- [ ] **10.8** Wire the Looking Glass to the `resolve_path` WebSocket command. Re-runs on selection change. Surfaces resolution failures clearly. Includes the passive note for `exclusive_outputs` devices reminding the user that output state is externally managed.
 
 - [ ] **10.9** Implement the Settings tab: community profile fetching opt-in, log verbosity, default policies for new zones.
 
@@ -314,7 +344,7 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 - [ ] **11.3** Write `docs/getting-started.md`: installation, adding the first device, creating the first zone, validating with the Looking Glass.
 
-- [ ] **11.4** Write `docs/profile-schema.md`: full schema reference for community profile contributors.
+- [ ] **11.4** Write `docs/profile-schema.md`: full schema reference for community profile contributors. Includes all eight discovery signal kinds, the `power_handling` value set, and the `output_groups`-centric structure.
 
 - [ ] **11.5** Write `docs/websocket-api.md`: reference for the WebSocket command surface (consolidate from earlier phases' incremental documentation).
 
