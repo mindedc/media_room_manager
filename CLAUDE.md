@@ -28,14 +28,14 @@ custom_components/media_room_manager/      # Backend Python package
 ├── const.py                               # Domain constants, defaults
 ├── config_flow.py                         # Minimal config flow (install only)
 ├── store.py                               # Store-backed persistence
-├── graph/                                 # Graph model (Layer 1)
-├── profiles/                              # Profile registry (Layer 2)
+├── graph/                                 # Graph model
+├── profiles/                              # Profile registry
 │   ├── registry.py
 │   ├── schema.py                          # voluptuous schema for profiles
 │   └── bundled/                           # Bundled YAML profiles
-├── adapters/                              # Adapter registry (Layer 3)
-├── resolver/                              # Path + role resolvers (Layers 4-5)
-├── orchestrator/                          # Orchestrator (Layer 6)
+├── adapters/                              # Adapter registry (5 mechanisms)
+├── resolver/                              # Path + role resolvers
+├── orchestrator/                          # Orchestrator + contention
 ├── services/                              # State tracker, discovery, repair
 ├── entities/                              # MediaPlayer, BinarySensor, Select, Switch
 ├── websocket/                             # WebSocket command surface
@@ -67,6 +67,7 @@ When the structure doesn't yet exist for a layer you're building, create it as o
 - Async everywhere HA expects it (entity callbacks, service handlers, store operations).
 - Use `homeassistant.helpers.storage.Store` for persistence — never `open()` files in the config dir directly.
 - Bind to entities via `entity_registry` IDs (UUIDs), never via `entity_id` strings.
+- Read entity metadata via `entity_registry.async_get(hass)` and `device_registry.async_get(hass)`. For sibling-entity retrieval (e.g., the discovery service's stage 2), use `async_entries_for_device(ent_reg, device_id, include_disabled_entities=True)`.
 - Logging via `_LOGGER = logging.getLogger(__name__)` per module. No `print()`.
 - Docstrings on every public class and function. Triple-quoted, summary line, blank line, details if needed.
 - Dataclasses (`@dataclass(frozen=True)` where appropriate) for graph model objects.
@@ -86,6 +87,10 @@ When the structure doesn't yet exist for a layer you're building, create it as o
 - **No changes to the WebSocket command schema** without updating its documentation in the same commit. The API is a stable contract.
 - **No changes to the profile schema** without updating `docs/profile-schema.md` and the example profiles in the same commit.
 - **No `# type: ignore` or `# noqa`** without an explanatory comment on the same line.
+- **`power_handling`** is a flat profile field with exactly four allowed values: `discrete_capable`, `toggle`, `always_on`, `disabled`. Do not extend the value set or introduce a nested `power_metadata` block. Use `power_on_delay` as a separate flat field.
+- **`share` contention policy is v1.x, not v1.0.** During v1.0 phases, implement `deny` (default) and `preempt` only. Do not implement `share`-mode contention handling unless explicitly told to by the user or unless the current active phase is v1.x.
+- **`exclusive_outputs: true`** is a device-level flag the path resolver and contention tracker observe. The orchestrator does **not** command output switching for devices with this flag — output state is externally managed by the user. Do not implement any output-selection commands for `exclusive_outputs` devices.
+- **Discovery uses two stages.** Stage 1 (anchor match) scores all enabled entities in HA against the profile output group flagged `is_discovery_anchor: true`. Stage 2 (sibling matching) uses `device_id` to find other entities under the same HA device and scores them against the profile's remaining output groups (including disabled entities). Do not flatten this into a single-stage process; the stages have different semantics and confidence requirements.
 
 ## Testing expectations
 
