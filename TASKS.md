@@ -8,7 +8,7 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 ---
 
-## Active phase: Phase 5 — Role resolver and orchestrator
+## Active phase: Phase 6 — Entities and devices
 
 ### Phase 0 tasks
 
@@ -159,25 +159,25 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 ### Phase 5 tasks
 
-- [ ] **5.1** Create `resolver/roles.py`. Given a resolved path, identifies which device/output_group holds each control role: `volume` from the zone's pinned volume authority; `transport` and `metadata_source` from the active source's device. Tests.
+- [x] **5.1** Create `resolver/roles.py`. Given a resolved path, identifies which device/output_group holds each control role: `volume` from the zone's pinned volume authority; `transport` and `metadata_source` from the active source's device. Tests.
 
-- [ ] **5.2** Create `orchestrator/__init__.py` and `orchestrator/orchestrator.py`. Skeleton class with `async_activate_zone(zone_id, source_id, sink_id?)` and `async_deactivate_zone(zone_id)`. Wire it to the path resolver, role resolver, and adapter registry.
+- [x] **5.2** Create `orchestrator/__init__.py` and `orchestrator/orchestrator.py`. Skeleton class with `async_activate_zone(zone_id, source_id, sink_id?)` and `async_deactivate_zone(zone_id)`. Wire it to the path resolver, role resolver, and adapter registry.
 
-- [ ] **5.3** Implement power-on sequencing respecting `power_handling`. For `discrete_capable`, issue power_on commands. For `toggle`, use observed state (or commanded-state fallback from the state tracker) to decide whether to issue the toggle. For `always_on` and `disabled`, issue no commands. Respect `power_on_delay`. Tests with mock devices for each `power_handling` value.
+- [x] **5.3** Implement power-on sequencing respecting `power_handling`. For `discrete_capable`, issue power_on commands. For `toggle`, use observed state (or commanded-state fallback from the state tracker) to decide whether to issue the toggle. For `always_on` and `disabled`, issue no commands. Respect `power_on_delay`. Tests with mock devices for each `power_handling` value.
 
-- [ ] **5.4** Implement input-selection sequencing. From sink toward source, set each transit device's input via the relevant output group's selection mechanism. Shared transit devices configured once. For `exclusive_outputs` devices, the orchestrator does **not** command output switching — it commands input selection and trusts the user has externally configured the active output. Tests.
+- [x] **5.4** Implement input-selection sequencing. From sink toward source, set each transit device's input via the relevant output group's selection mechanism. Shared transit devices configured once. For `exclusive_outputs` devices, the orchestrator does **not** command output switching — it commands input selection and trusts the user has externally configured the active output. Tests.
 
-- [ ] **5.5** Implement virtual-source selection. If the active source is a virtual source, after path setup, select it on its containing device. Tests.
+- [x] **5.5** Implement virtual-source selection. If the active source is a virtual source, after path setup, select it on its containing device. Tests.
 
-- [ ] **5.6** Implement transport activation. After path setup, issue a transport command (typically `play`) at the source if it provides the transport role. Tests.
+- [x] **5.6** Implement transport activation. After path setup, issue a transport command (typically `play`) at the source if it provides the transport role. Tests.
 
-- [ ] **5.7** Implement deactivation sequencing. On zone deactivation, mark devices in the path as no-longer-needed-by-this-zone. Devices still in use by other zones stay on. Devices no longer needed are powered off (respecting `power_handling`). Tests with shared devices and multi-zone scenarios.
+- [x] **5.7** Implement deactivation sequencing. On zone deactivation, mark devices in the path as no-longer-needed-by-this-zone. Devices still in use by other zones stay on. Devices no longer needed are powered off (respecting `power_handling`). Tests with shared devices and multi-zone scenarios.
 
-- [ ] **5.8** Implement retry policy and failure surfacing. Each step has a configurable retry count. Hard failures result in `state: unavailable` plus `error_detail` on the zone media_player. Tests injecting failures.
+- [x] **5.8** Implement retry policy and failure surfacing. Each step has a configurable retry count. Hard failures result in `state: unavailable` plus `error_detail` on the zone media_player. Tests injecting failures.
 
-- [ ] **5.9** Implement contention enforcement for `deny` and `preempt` policies. When activation requires a contended resource, apply the zone's policy. For `preempt`, tear down conflicting paths first. **The `share` policy is v1.x and is not implemented in this phase** — profiles or zone configurations specifying `share` should be validated against and rejected with a clear error message in v1.0. Tests for both `deny` and `preempt` covering input-side, output-side, and `exclusive_outputs` contention.
+- [x] **5.9** Implement contention enforcement for `deny` and `preempt` policies. When activation requires a contended resource, apply the zone's policy. For `preempt`, tear down conflicting paths first. **The `share` policy is v1.x and is not implemented in this phase** — profiles or zone configurations specifying `share` should be validated against and rejected with a clear error message in v1.0. Tests for both `deny` and `preempt` covering input-side, output-side, and `exclusive_outputs` contention.
 
-- [ ] **5.10** End-to-end integration test: load a multi-device profile set, define a graph and a zone, activate the zone, assert correct service calls were made in the correct order. Mark Phase 5 complete.
+- [x] **5.10** End-to-end integration test: load a multi-device profile set, define a graph and a zone, activate the zone, assert correct service calls were made in the correct order. Mark Phase 5 complete.
 
 ---
 

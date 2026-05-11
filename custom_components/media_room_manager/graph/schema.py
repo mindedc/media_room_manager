@@ -390,6 +390,7 @@ INSTANCE_BINDING_SCHEMA = vol.Schema(
         vol.Required("output_group_id"): _str_non_empty,
         vol.Required("entity_registry_id"): _str_non_empty,
         vol.Optional("label_remaps", default=[]): [[str]],
+        vol.Optional("mechanism_params", default={}): dict,
     }
 )
 
@@ -464,6 +465,7 @@ def instance_binding_from_dict(d: dict[str, Any]) -> InstanceBinding:
         output_group_id=v["output_group_id"],
         entity_registry_id=v["entity_registry_id"],
         label_remaps=tuple(tuple(pair) for pair in v.get("label_remaps", [])),
+        mechanism_params=tuple(d.get("mechanism_params", {}).items()),
     )
 
 
@@ -473,6 +475,7 @@ def instance_binding_to_dict(b: InstanceBinding) -> dict[str, Any]:
         "output_group_id": b.output_group_id,
         "entity_registry_id": b.entity_registry_id,
         "label_remaps": [list(pair) for pair in b.label_remaps],
+        "mechanism_params": dict(b.mechanism_params),
     }
 
 

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import StrEnum
+from typing import Any
 
 
 class InterfaceType(StrEnum):
@@ -240,11 +241,16 @@ class InstanceBinding:
 
     Stores the entity registry UUID (not the entity_id string) so renames
     don't break the binding.
+
+    mechanism_params stores mechanism-specific kwargs as key-value pairs, e.g.
+    ("command", "HDMI_1") for remote_command or ("row_entity_ids", [...]) for
+    switch_combo.  The tuple-of-pairs representation keeps the dataclass frozen.
     """
 
     output_group_id: str
     entity_registry_id: str
     label_remaps: tuple[tuple[str, str], ...] = field(default_factory=tuple)
+    mechanism_params: tuple[tuple[str, Any], ...] = field(default_factory=tuple)
 
 
 @dataclass(frozen=True)
