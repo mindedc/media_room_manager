@@ -17,7 +17,6 @@ output_groups:
       expected_domain: select
       expected_options: ["Input 1", "Input 2", "Input 3", "Input 4"]
 
-inputs_are_exclusive_per_output_group: [tx0, tx1]
 
 aux_entities:
   - id: power
