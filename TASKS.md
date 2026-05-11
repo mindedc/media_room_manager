@@ -8,7 +8,7 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 ---
 
-## Active phase: Phase 4 — Path resolver
+## Active phase: Phase 5 — Role resolver and orchestrator
 
 ### Phase 0 tasks
 
@@ -131,27 +131,27 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 ### Phase 4 tasks
 
-- [ ] **4.1** Create `resolver/graph_view.py`. Helper that takes a `SystemConfig` and produces a queryable view: "for this output interface, what input interface does it connect to?", "for this device's output group, what input interfaces are routable to it?", etc. Tests.
+- [x] **4.1** Create `resolver/graph_view.py`. Helper that takes a `SystemConfig` and produces a queryable view: "for this output interface, what input interface does it connect to?", "for this device's output group, what input interfaces are routable to it?", etc. Tests.
 
-- [ ] **4.2** Implement `resolver/path.py` BFS for simple linear paths through a single carrier (audio or video). Given (source_interface, sink_interface, carrier), returns the list of (device, input_interface, output_interface, output_group) tuples or a structured "no path" result. Tests with simple two-device and three-device chains.
+- [x] **4.2** Implement `resolver/path.py` BFS for simple linear paths through a single carrier (audio or video). Given (source_interface, sink_interface, carrier), returns the list of (device, input_interface, output_interface, output_group) tuples or a structured "no path" result. Tests with simple two-device and three-device chains.
 
-- [ ] **4.3** Add transit-device transparency: any input on a transit device can reach any output of compatible carrier within the same output group. Tests with a matrix in the middle of a path.
+- [x] **4.3** Add transit-device transparency: any input on a transit device can reach any output of compatible carrier within the same output group. Tests with a matrix in the middle of a path.
 
-- [ ] **4.4** Add `hdmi_audio_return` reverse-audio handling: when computing audio paths, treat `hdmi_audio_return` interfaces as having a hidden complementary direction. Tests with a TV-feeding-AVR-via-ARC example.
+- [x] **4.4** Add `hdmi_audio_return` reverse-audio handling: when computing audio paths, treat `hdmi_audio_return` interfaces as having a hidden complementary direction. Tests with a TV-feeding-AVR-via-ARC example.
 
-- [ ] **4.5** Add output-group constraint checking: an input is only routable to a given output group if listed in `routable_to_output_group`. Tests with a Marantz-like profile where Phono is routable to main only.
+- [x] **4.5** Add output-group constraint checking: an input is only routable to a given output group if listed in `routable_to_output_group`. Tests with a Marantz-like profile where Phono is routable to main only.
 
-- [ ] **4.6** Handle multi-sink zones: `simultaneous` (resolve to each sink, deduplicate shared transit devices) and `selectable_exclusive` (resolve to one sink per request). Tests covering both modes.
+- [x] **4.6** Handle multi-sink zones: `simultaneous` (resolve to each sink, deduplicate shared transit devices) and `selectable_exclusive` (resolve to one sink per request). Tests covering both modes.
 
-- [ ] **4.7** Handle virtual sources: when the source is a virtual source, the "path" is the source's containing device + virtual source selection. The audio path terminates at the volume authority (which may be a different device entirely if the virtual source is upstream of an AVR). Tests.
+- [x] **4.7** Handle virtual sources: when the source is a virtual source, the "path" is the source's containing device + virtual source selection. The audio path terminates at the volume authority (which may be a different device entirely if the virtual source is upstream of an AVR). Tests.
 
-- [ ] **4.8** Add `exclusive_outputs` tracking. The resolver records which output of an `exclusive_outputs` device is being used in the resolved path. This is captured in the resolver's output for the orchestrator's contention tracking — the resolver does not refuse to compute paths through `exclusive_outputs` devices and does not command output switching.
+- [x] **4.8** Add `exclusive_outputs` tracking. The resolver records which output of an `exclusive_outputs` device is being used in the resolved path. This is captured in the resolver's output for the orchestrator's contention tracking — the resolver does not refuse to compute paths through `exclusive_outputs` devices and does not command output switching.
 
-- [ ] **4.9** Add input-side and output-side contention detection. Path resolver checks against currently-active paths and reports contention as part of its result. Includes input-side from `inputs_are_exclusive_per_output_group`, output-side from per-output `output_selection`, and output-side from `exclusive_outputs` devices. Tests with two zones competing for an AVR's input and two zones competing for a Lumagen's outputs.
+- [x] **4.9** Add input-side and output-side contention detection. Path resolver checks against currently-active paths and reports contention as part of its result. Includes input-side from `inputs_are_exclusive_per_output_group`, output-side from per-output `output_selection`, and output-side from `exclusive_outputs` devices. Tests with two zones competing for an AVR's input and two zones competing for a Lumagen's outputs.
 
-- [ ] **4.10** Implement WebSocket command `media_room_manager/resolve_path` that takes (zone_id, source_id, sink_id?) and returns the structured resolver output. This powers the Looking Glass. Tests.
+- [x] **4.10** Implement WebSocket command `media_room_manager/resolve_path` that takes (zone_id, source_id, sink_id?) and returns the structured resolver output. This powers the Looking Glass. Tests.
 
-- [ ] **4.11** Build comprehensive integration tests using a fixture system that defines small example configurations (Marantz + Apple TV, a sports-bar setup with matrix, a media room with TV+projector, an HDFury Diva with audio extraction to a stereo amp, a Lumagen feeding two displays) and asserts resolver output for various source-zone combinations. Mark Phase 4 complete.
+- [x] **4.11** Build comprehensive integration tests using a fixture system that defines small example configurations (Marantz + Apple TV, a sports-bar setup with matrix, a media room with TV+projector, an HDFury Diva with audio extraction to a stereo amp, a Lumagen feeding two displays) and asserts resolver output for various source-zone combinations. Mark Phase 4 complete.
 
 ---
 
