@@ -8,7 +8,7 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 ---
 
-## Active phase: Phase 0 — Repository scaffold
+## Active phase: Phase 2 — Profile registry and bundled profiles
 
 ### Phase 0 tasks
 
@@ -38,25 +38,25 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 ### Phase 1 tasks
 
-- [ ] **1.1** Create `custom_components/media_room_manager/graph/__init__.py` and `graph/model.py` with frozen dataclasses for the simplest objects first: `InterfaceType` (enum), `InterfaceDirection` (enum), `Interface`. Type hints throughout. Unit tests verifying construction and equality.
+- [x] **1.1** Create `custom_components/media_room_manager/graph/__init__.py` and `graph/model.py` with frozen dataclasses for the simplest objects first: `InterfaceType` (enum), `InterfaceDirection` (enum), `Interface`. Type hints throughout. Unit tests verifying construction and equality.
 
-- [ ] **1.2** Add dataclasses for `OutputGroup`, `Connection`, `VirtualSource`, `Device`. Unit tests for each.
+- [x] **1.2** Add dataclasses for `OutputGroup`, `Connection`, `VirtualSource`, `Device`. Unit tests for each.
 
-- [ ] **1.3** Add dataclasses for `Zone` (with `sink_mode` enum: `single`, `simultaneous`, `selectable_exclusive`), `SourceVisibilitySelection`, `InstanceBinding` (entity registry id + per-instance remaps), and any supporting types. Unit tests.
+- [x] **1.3** Add dataclasses for `Zone` (with `sink_mode` enum: `single`, `simultaneous`, `selectable_exclusive`), `SourceVisibilitySelection`, `InstanceBinding` (entity registry id + per-instance remaps), and any supporting types. Unit tests.
 
-- [ ] **1.4** Create `graph/schema.py` with `voluptuous` validators for each dataclass. Validators should be reversible: `validator(value).is_valid` and round-trip through dict serialization. Tests covering positive and negative cases for each.
+- [x] **1.4** Create `graph/schema.py` with `voluptuous` validators for each dataclass. Validators should be reversible: `validator(value).is_valid` and round-trip through dict serialization. Tests covering positive and negative cases for each.
 
-- [ ] **1.5** Create `store.py` with a `MRMStore` class wrapping HA's `Store` helper. Persistence key: `media_room_manager.system`. Version 1. Methods: `async_load() -> SystemConfig`, `async_save(config: SystemConfig)`. Migration scaffold (no migrations needed yet, but the structure is in place). Round-trip test: build a non-trivial config, save it, reload, assert equality.
+- [x] **1.5** Create `store.py` with a `MRMStore` class wrapping HA's `Store` helper. Persistence key: `media_room_manager.system`. Version 1. Methods: `async_load() -> SystemConfig`, `async_save(config: SystemConfig)`. Migration scaffold (no migrations needed yet, but the structure is in place). Round-trip test: build a non-trivial config, save it, reload, assert equality.
 
-- [ ] **1.6** Define a `SystemConfig` aggregate that holds all graph data (lists of devices, connections, zones, source visibility selections, etc.). Includes a `schema_version` field. Add to the validator set.
+- [x] **1.6** Define a `SystemConfig` aggregate that holds all graph data (lists of devices, connections, zones, source visibility selections, etc.). Includes a `schema_version` field. Add to the validator set.
 
-- [ ] **1.7** Wire `MRMStore` into the integration's `async_setup_entry`. On entry setup, load the config (or create an empty one if none exists) and stash it in `hass.data[DOMAIN][entry.entry_id]`. Tests using HA's mock environment.
+- [x] **1.7** Wire `MRMStore` into the integration's `async_setup_entry`. On entry setup, load the config (or create an empty one if none exists) and stash it in `hass.data[DOMAIN][entry.entry_id]`. Tests using HA's mock environment.
 
-- [ ] **1.8** Create `websocket/__init__.py` and `websocket/inspection.py`. Register read-only commands `media_room_manager/list_devices`, `media_room_manager/list_zones`, `media_room_manager/list_connections`. Each returns the relevant slice of the system config as serializable dicts. Unit tests asserting the commands return correct data.
+- [x] **1.8** Create `websocket/__init__.py` and `websocket/inspection.py`. Register read-only commands `media_room_manager/list_devices`, `media_room_manager/list_zones`, `media_room_manager/list_connections`. Each returns the relevant slice of the system config as serializable dicts. Unit tests asserting the commands return correct data.
 
-- [ ] **1.9** Document the WebSocket commands added in this phase in `docs/websocket-api.md` with command names, parameters, response shapes, and version notes.
+- [x] **1.9** Document the WebSocket commands added in this phase in `docs/websocket-api.md` with command names, parameters, response shapes, and version notes.
 
-- [ ] **1.10** Verify all Phase 1 success criteria. Mark Phase 1 complete.
+- [x] **1.10** Verify all Phase 1 success criteria. Mark Phase 1 complete.
 
 ---
 
