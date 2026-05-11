@@ -1,0 +1,142 @@
+profile_id: monoprice/blackbird-8x8
+schema_version: 1
+manufacturer: Monoprice
+model: Blackbird 8x8 (24179)
+category: matrix
+power_handling: discrete_capable
+
+output_groups:
+  - id: out_1
+    selection_mechanism:
+      kind: select_entity
+      expected_domain: select
+      expected_options: ["Input 1", "Input 2", "Input 3", "Input 4",
+                         "Input 5", "Input 6", "Input 7", "Input 8"]
+  - id: out_2
+    selection_mechanism:
+      kind: select_entity
+      expected_domain: select
+      expected_options: ["Input 1", "Input 2", "Input 3", "Input 4",
+                         "Input 5", "Input 6", "Input 7", "Input 8"]
+  - id: out_3
+    selection_mechanism:
+      kind: select_entity
+      expected_domain: select
+      expected_options: ["Input 1", "Input 2", "Input 3", "Input 4",
+                         "Input 5", "Input 6", "Input 7", "Input 8"]
+  - id: out_4
+    selection_mechanism:
+      kind: select_entity
+      expected_domain: select
+      expected_options: ["Input 1", "Input 2", "Input 3", "Input 4",
+                         "Input 5", "Input 6", "Input 7", "Input 8"]
+  - id: out_5
+    selection_mechanism:
+      kind: select_entity
+      expected_domain: select
+      expected_options: ["Input 1", "Input 2", "Input 3", "Input 4",
+                         "Input 5", "Input 6", "Input 7", "Input 8"]
+  - id: out_6
+    selection_mechanism:
+      kind: select_entity
+      expected_domain: select
+      expected_options: ["Input 1", "Input 2", "Input 3", "Input 4",
+                         "Input 5", "Input 6", "Input 7", "Input 8"]
+  - id: out_7
+    selection_mechanism:
+      kind: select_entity
+      expected_domain: select
+      expected_options: ["Input 1", "Input 2", "Input 3", "Input 4",
+                         "Input 5", "Input 6", "Input 7", "Input 8"]
+  - id: out_8
+    selection_mechanism:
+      kind: select_entity
+      expected_domain: select
+      expected_options: ["Input 1", "Input 2", "Input 3", "Input 4",
+                         "Input 5", "Input 6", "Input 7", "Input 8"]
+
+aux_entities:
+  - id: power
+    expected_domain: switch
+
+interfaces:
+  - id: in_1
+    direction: input
+    type: hdmi
+    label: "Input 1"
+    routable_to_output_group: [out_1, out_2, out_3, out_4, out_5, out_6, out_7, out_8]
+  - id: in_2
+    direction: input
+    type: hdmi
+    label: "Input 2"
+    routable_to_output_group: [out_1, out_2, out_3, out_4, out_5, out_6, out_7, out_8]
+  - id: in_3
+    direction: input
+    type: hdmi
+    label: "Input 3"
+    routable_to_output_group: [out_1, out_2, out_3, out_4, out_5, out_6, out_7, out_8]
+  - id: in_4
+    direction: input
+    type: hdmi
+    label: "Input 4"
+    routable_to_output_group: [out_1, out_2, out_3, out_4, out_5, out_6, out_7, out_8]
+  - id: in_5
+    direction: input
+    type: hdmi
+    label: "Input 5"
+    routable_to_output_group: [out_1, out_2, out_3, out_4, out_5, out_6, out_7, out_8]
+  - id: in_6
+    direction: input
+    type: hdmi
+    label: "Input 6"
+    routable_to_output_group: [out_1, out_2, out_3, out_4, out_5, out_6, out_7, out_8]
+  - id: in_7
+    direction: input
+    type: hdmi
+    label: "Input 7"
+    routable_to_output_group: [out_1, out_2, out_3, out_4, out_5, out_6, out_7, out_8]
+  - id: in_8
+    direction: input
+    type: hdmi
+    label: "Input 8"
+    routable_to_output_group: [out_1, out_2, out_3, out_4, out_5, out_6, out_7, out_8]
+  - id: out_hdmi_1
+    direction: output
+    type: hdmi
+    label: "Output 1"
+    output_group: out_1
+  - id: out_hdmi_2
+    direction: output
+    type: hdmi
+    label: "Output 2"
+    output_group: out_2
+  - id: out_hdmi_3
+    direction: output
+    type: hdmi
+    label: "Output 3"
+    output_group: out_3
+  - id: out_hdmi_4
+    direction: output
+    type: hdmi
+    label: "Output 4"
+    output_group: out_4
+  - id: out_hdmi_5
+    direction: output
+    type: hdmi
+    label: "Output 5"
+    output_group: out_5
+  - id: out_hdmi_6
+    direction: output
+    type: hdmi
+    label: "Output 6"
+    output_group: out_6
+  - id: out_hdmi_7
+    direction: output
+    type: hdmi
+    label: "Output 7"
+    output_group: out_7
+  - id: out_hdmi_8
+    direction: output
+    type: hdmi
+    label: "Output 8"
+    output_group: out_8

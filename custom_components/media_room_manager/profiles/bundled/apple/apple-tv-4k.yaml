@@ -1,0 +1,67 @@
+profile_id: apple/apple-tv-4k
+schema_version: 1
+manufacturer: Apple
+model: Apple TV 4K
+category: source
+power_handling: discrete_capable
+
+output_groups:
+  - id: main
+    selection_mechanism:
+      kind: media_player_source
+      expected_domain: media_player
+      expected_features:
+        - turn_on
+        - turn_off
+        - select_source
+        - play_media
+        - media_play
+        - media_pause
+        - media_stop
+        - media_next_track
+        - media_previous_track
+    provides_roles: [transport, metadata_source, source_selection]
+
+interfaces:
+  - id: hdmi_out
+    direction: output
+    type: hdmi
+    label: "HDMI OUT"
+    output_group: main
+  - id: toslink_out
+    direction: output
+    type: optical_audio
+    label: "Toslink OUT"
+    output_group: main
+
+dynamic_virtual_sources:
+  source: source_list_minus_known
+  output_group: main
+  exclude:
+    - "Settings"
+    - "Search"
+    - "App Store"
+    - "Photos"
+
+discovery:
+  output_groups:
+    - output_group: main
+      is_discovery_anchor: true
+      match_threshold: 60
+      signals:
+        - kind: platform
+          domain: apple_tv
+          weight: 100
+        - kind: supported_features
+          values: [450487]
+          weight: 20
+        - kind: source_list_signature
+          includes_any: ["TV", "Computers", "Music", "App Store", "Arcade",
+                         "Movies", "Photos", "Podcasts", "Search", "Settings"]
+          weight: 50
+        - kind: attribute_constellation
+          includes: ["source_list", "media_content_id", "media_duration",
+                     "media_position", "media_position_updated_at", "media_title",
+                     "media_artist", "app_id", "app_name", "entity_picture",
+                     "friendly_name", "supported_features"]
+          weight: 50

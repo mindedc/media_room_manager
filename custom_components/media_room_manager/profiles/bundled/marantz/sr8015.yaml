@@ -1,0 +1,165 @@
+profile_id: marantz/sr8015
+schema_version: 1
+manufacturer: Marantz
+model: SR8015
+category: avr
+power_handling: discrete_capable
+power_on_delay: 4
+
+output_groups:
+  - id: main
+    selection_mechanism:
+      kind: media_player_source
+      expected_domain: media_player
+      expected_features:
+        - turn_on
+        - turn_off
+        - select_source
+        - volume_set
+        - volume_mute
+    provides_roles: [power, volume, source_selection, metadata_source]
+
+  - id: zone_2
+    selection_mechanism:
+      kind: media_player_source
+      expected_domain: media_player
+      expected_features:
+        - turn_on
+        - turn_off
+        - select_source
+        - volume_set
+        - volume_mute
+    provides_roles: [power, volume, source_selection, metadata_source]
+
+inputs_are_exclusive_per_output_group: [main, zone_2]
+
+interfaces:
+  - id: hdmi_1
+    direction: input
+    type: hdmi
+    label: "CBL/SAT"
+    routable_to_output_group: [main, zone_2]
+  - id: hdmi_2
+    direction: input
+    type: hdmi
+    label: "DVD"
+    routable_to_output_group: [main, zone_2]
+  - id: hdmi_3
+    direction: input
+    type: hdmi
+    label: "Blu-ray"
+    routable_to_output_group: [main, zone_2]
+  - id: hdmi_4
+    direction: input
+    type: hdmi
+    label: "Game"
+    routable_to_output_group: [main, zone_2]
+  - id: hdmi_5
+    direction: input
+    type: hdmi
+    label: "Media Player"
+    routable_to_output_group: [main, zone_2]
+  - id: hdmi_6
+    direction: input
+    type: hdmi
+    label: "CD"
+    routable_to_output_group: [main, zone_2]
+  - id: hdmi_7
+    direction: input
+    type: hdmi
+    label: "AUX1"
+    routable_to_output_group: [main, zone_2]
+  - id: hdmi_8
+    direction: input
+    type: hdmi
+    label: "AUX2"
+    routable_to_output_group: [main, zone_2]
+  - id: optical_in_1
+    direction: input
+    type: optical_audio
+    label: "OPTICAL 1"
+    routable_to_output_group: [main, zone_2]
+  - id: optical_in_2
+    direction: input
+    type: optical_audio
+    label: "OPTICAL 2"
+    routable_to_output_group: [main, zone_2]
+  - id: coax_in_1
+    direction: input
+    type: coax_audio
+    label: "COAX 1"
+    routable_to_output_group: [main, zone_2]
+  - id: coax_in_2
+    direction: input
+    type: coax_audio
+    label: "COAX 2"
+    routable_to_output_group: [main, zone_2]
+  - id: phono_in
+    direction: input
+    type: rca_audio
+    label: "Phono"
+    routable_to_output_group: [main]
+  - id: hdmi_main_out_1
+    direction: output
+    type: hdmi_audio_return
+    label: "HDMI MONITOR OUT 1"
+    output_group: main
+  - id: hdmi_main_out_2
+    direction: output
+    type: hdmi_audio_return
+    label: "HDMI MONITOR OUT 2"
+    output_group: main
+  - id: zone_2_hdmi_out
+    direction: output
+    type: hdmi
+    label: "ZONE 2 HDMI OUT"
+    output_group: zone_2
+  - id: zone_2_rca_out
+    direction: output
+    type: rca_audio
+    label: "ZONE 2 PRE-OUT"
+    output_group: zone_2
+
+virtual_sources:
+  - id: tuner
+    label: "Tuner"
+    routable_to_output_group: [main, zone_2]
+
+dynamic_virtual_sources:
+  source: source_list_minus_known
+  output_group: main
+  exclude:
+    - "Internet Radio"
+
+discovery:
+  output_groups:
+    - output_group: main
+      is_discovery_anchor: true
+      match_threshold: 60
+      signals:
+        - kind: device_registry
+          manufacturer: "Marantz"
+          model_patterns: ["SR8015", "*SR8015*"]
+          weight: 100
+        - kind: platform
+          domain: denonavr
+          weight: 40
+        - kind: source_list_signature
+          includes_any: ["CBL/SAT", "Blu-ray", "Phono", "Media Player"]
+          weight: 30
+        - kind: sound_mode_list_signature
+          includes_any: ["STEREO", "DOLBY DIGITAL", "DTS SURROUND", "MULTI CH STEREO"]
+          weight: 50
+        - kind: attribute_constellation
+          includes: ["source_list", "sound_mode_list", "supported_features"]
+          weight: 50
+    - output_group: zone_2
+      match_threshold: 50
+      optional: true
+      signals:
+        - kind: platform
+          domain: denonavr
+          weight: 40
+        - kind: attribute_constellation
+          includes: ["source_list", "supported_features"]
+          weight: 30

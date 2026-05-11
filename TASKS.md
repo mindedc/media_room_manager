@@ -8,7 +8,7 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 ---
 
-## Active phase: Phase 2 — Profile registry and bundled profiles
+## Active phase: Phase 3 — Adapter registry
 
 ### Phase 0 tasks
 
@@ -64,7 +64,7 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 ### Phase 2 tasks
 
-- [ ] **2.1** Create `profiles/schema.py` defining the full profile YAML schema in `voluptuous`. Cover:
+- [x] **2.1** Create `profiles/schema.py` defining the full profile YAML schema in `voluptuous`. Cover:
   - Top-level: `profile_id`, `schema_version`, `manufacturer`, `model`, `category`, `power_handling` (one of `discrete_capable`, `toggle`, `always_on`, `disabled`), `power_on_delay` (integer seconds, defaults to 0), `exclusive_outputs` (boolean, optional).
   - `output_groups` list: each with `id`, optional `selection_mechanism` (with `kind`, `expected_domain`, capability expectations like `expected_features`, `expected_options`, `expected_commands`), `provides_roles`, and optional `role_operations` for non-`media_player`-bound groups.
   - `inputs_are_exclusive_per_output_group` list of output_group ids.
@@ -75,33 +75,33 @@ If a task description is unclear or seems to contradict the README, **stop and a
   - `discovery` block (optional): `output_groups` list, each with `output_group`, optional `is_discovery_anchor: true`, `match_threshold`, optional `optional: true`, `signals` list.
   - Document the schema in `docs/profile-schema.md`.
 
-- [ ] **2.2** Create `profiles/loader.py`. Function: `load_profile_yaml(path: Path) -> Profile`. Reads YAML, validates against schema, returns a typed `Profile` dataclass (defined in `profiles/types.py`). Tests against minimal valid and invalid examples.
+- [x] **2.2** Create `profiles/loader.py`. Function: `load_profile_yaml(path: Path) -> Profile`. Reads YAML, validates against schema, returns a typed `Profile` dataclass (defined in `profiles/types.py`). Tests against minimal valid and invalid examples.
 
-- [ ] **2.3** Create `profiles/registry.py`. `ProfileRegistry` loads bundled profiles from `profiles/bundled/` at integration startup. Exposes `get(profile_id) -> Profile | None` and `list_all() -> list[Profile]`. Layered loading order: local > community-fetched > bundled (only bundled implemented in this phase). Tests.
+- [x] **2.3** Create `profiles/registry.py`. `ProfileRegistry` loads bundled profiles from `profiles/bundled/` at integration startup. Exposes `get(profile_id) -> Profile | None` and `list_all() -> list[Profile]`. Layered loading order: local > community-fetched > bundled (only bundled implemented in this phase). Tests.
 
-- [ ] **2.4** Author starter profile #1: Apple TV 4K (`profiles/bundled/apple/apple-tv-4k.yaml`). Match the README example. `power_handling: discrete_capable`. Includes `dynamic_virtual_sources` with `exclude` list. Discovery block with anchor on `main`. Verify it loads.
+- [x] **2.4** Author starter profile #1: Apple TV 4K (`profiles/bundled/apple/apple-tv-4k.yaml`). Match the README example. `power_handling: discrete_capable`. Includes `dynamic_virtual_sources` with `exclude` list. Discovery block with anchor on `main`. Verify it loads.
 
-- [ ] **2.5** Author starter profile #2: Sony DVP-NS500V (IR-controlled Blu-ray). `power_handling: toggle`. Uses `remote_command` mechanism in `role_operations`. Aux entity for the IR blaster. Match the README example.
+- [x] **2.5** Author starter profile #2: Sony DVP-NS500V (IR-controlled Blu-ray). `power_handling: toggle`. Uses `remote_command` mechanism in `role_operations`. Aux entity for the IR blaster. Match the README example.
 
-- [ ] **2.6** Author starter profile #3: a single-zone AVR — pick a representative model (e.g., Denon AVR-X1700H) and structure it cleanly. `power_handling: discrete_capable`. One output group with `media_player_source` mechanism. Include `discovery` block.
+- [x] **2.6** Author starter profile #3: a single-zone AVR — pick a representative model (e.g., Denon AVR-X1700H) and structure it cleanly. `power_handling: discrete_capable`. One output group with `media_player_source` mechanism. Include `discovery` block.
 
-- [ ] **2.7** Author starter profile #4: Marantz SR8015. Match the README example exactly. Two output groups (`main` and `zone_2`), `inputs_are_exclusive_per_output_group`, static `tuner` virtual source, `dynamic_virtual_sources` for HEOS on `main`. Discovery block with anchor on `main` and optional sibling for `zone_2`.
+- [x] **2.7** Author starter profile #4: Marantz SR8015. Match the README example exactly. Two output groups (`main` and `zone_2`), `inputs_are_exclusive_per_output_group`, static `tuner` virtual source, `dynamic_virtual_sources` for HEOS on `main`. Discovery block with anchor on `main` and optional sibling for `zone_2`.
 
-- [ ] **2.8** Author starter profile #5: Anthem MRX 740. Two output groups with parallel HDMI outputs both belonging to `main`. Discovery block. Match the README example.
+- [x] **2.8** Author starter profile #5: Anthem MRX 740. Two output groups with parallel HDMI outputs both belonging to `main`. Discovery block. Match the README example.
 
-- [ ] **2.9** Author starter profile #6: Monoprice Blackbird 8x8 matrix. Each output is its own output group of size 1 with `select_entity` mechanism. Aux entity for the power switch. Match the README example.
+- [x] **2.9** Author starter profile #6: Monoprice Blackbird 8x8 matrix. Each output is its own output group of size 1 with `select_entity` mechanism. Aux entity for the power switch. Match the README example.
 
-- [ ] **2.10** Author starter profile #7: HDFury Diva. Two output groups (`tx0`, `tx1`) with audio extraction outputs in TX0's group. Power switch aux entity. Discovery block.
+- [x] **2.10** Author starter profile #7: HDFury Diva. Two output groups (`tx0`, `tx1`) with audio extraction outputs in TX0's group. Power switch aux entity. Discovery block.
 
-- [ ] **2.11** Author starter profile #8: Lumagen Radiance Pro. Single output group, `exclusive_outputs: true`, `inputs_are_exclusive_per_output_group: [main]`. Match the README example.
+- [x] **2.11** Author starter profile #8: Lumagen Radiance Pro. Single output group, `exclusive_outputs: true`, `inputs_are_exclusive_per_output_group: [main]`. Match the README example.
 
-- [ ] **2.12** Author starter profile #9: a generic HDMI 1×4 splitter / distribution amp. One output group with no `selection_mechanism` (passive transit). `power_handling: disabled`.
+- [x] **2.12** Author starter profile #9: a generic HDMI 1×4 splitter / distribution amp. One output group with no `selection_mechanism` (passive transit). `power_handling: disabled`.
 
-- [ ] **2.13** Author starter profile #10: generic HDMI audio extractor. Passive converter category. One output group with no `selection_mechanism`, four outputs (HDMI passthrough, HDMI audio extraction, optical, RCA). `power_handling: disabled`. Match the README example.
+- [x] **2.13** Author starter profile #10: generic HDMI audio extractor. Passive converter category. One output group with no `selection_mechanism`, four outputs (HDMI passthrough, HDMI audio extraction, optical, RCA). `power_handling: disabled`. Match the README example.
 
-- [ ] **2.14** Add WebSocket commands `media_room_manager/list_profiles` and `media_room_manager/get_profile`. Each returns serialized profile data. Tests.
+- [x] **2.14** Add WebSocket commands `media_room_manager/list_profiles` and `media_room_manager/get_profile`. Each returns serialized profile data. Tests.
 
-- [ ] **2.15** Verify all 10 starter profiles load without warnings. Add an integration test that loads each and asserts structural correctness (expected number of interfaces, output groups, etc.). Mark Phase 2 complete.
+- [x] **2.15** Verify all 10 starter profiles load without warnings. Add an integration test that loads each and asserts structural correctness (expected number of interfaces, output groups, etc.). Mark Phase 2 complete.
 
 ---
 

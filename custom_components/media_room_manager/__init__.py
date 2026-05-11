@@ -8,6 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
+from .profiles.registry import ProfileRegistry
 from .store import MRMStore
 from .websocket import async_register_commands
 
@@ -21,14 +22,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     store = MRMStore(hass)
     config = await store.async_load()
 
-    hass.data[DOMAIN][entry.entry_id] = {"store": store, "config": config}
+    registry = ProfileRegistry()
+    registry.load_bundled()
+
+    hass.data[DOMAIN][entry.entry_id] = {"store": store, "config": config, "registry": registry}
 
     async_register_commands(hass)
 
     _LOGGER.debug(
-        "Media Room Manager entry %s set up; %d device(s) loaded",
+        "Media Room Manager entry %s set up; %d device(s) loaded, %d profile(s) available",
         entry.entry_id,
         len(config.devices),
+        len(registry),
     )
     return True
 

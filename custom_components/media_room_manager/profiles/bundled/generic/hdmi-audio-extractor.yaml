@@ -1,0 +1,36 @@
+profile_id: generic/hdmi-audio-extractor
+schema_version: 1
+manufacturer: Generic
+model: HDMI Audio Extractor
+category: passive_converter
+power_handling: disabled
+
+output_groups:
+  - id: main
+
+interfaces:
+  - id: hdmi_in
+    direction: input
+    type: hdmi
+    label: "HDMI IN"
+    routable_to_output_group: [main]
+  - id: hdmi_passthrough_out
+    direction: output
+    type: hdmi
+    label: "HDMI OUT"
+    output_group: main
+  - id: hdmi_audio_out
+    direction: output
+    type: hdmi
+    label: "HDMI AUDIO OUT"
+    output_group: main
+  - id: audio_breakout_optical
+    direction: output
+    type: optical_audio
+    label: "OPTICAL AUDIO OUT"
+    output_group: main
+  - id: audio_breakout_rca
+    direction: output
+    type: rca_audio
+    label: "RCA AUDIO OUT"
+    output_group: main

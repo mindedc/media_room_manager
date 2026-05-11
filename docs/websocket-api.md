@@ -121,5 +121,92 @@ Returns all configured connections between device interfaces.
 
 ---
 
+## Phase 2 commands — Profile registry
+
+### `media_room_manager/list_profiles`
+
+Returns a lightweight summary of every loaded profile (bundled + local).
+
+**Request:**
+
+```json
+{ "id": 4, "type": "media_room_manager/list_profiles" }
+```
+
+**Response:**
+
+```json
+{
+  "id": 4,
+  "type": "result",
+  "success": true,
+  "result": {
+    "profiles": [
+      {
+        "profile_id": "apple/apple-tv-4k",
+        "manufacturer": "Apple",
+        "model": "Apple TV 4K",
+        "category": "source",
+        "power_handling": "discrete_capable"
+      }
+    ]
+  }
+}
+```
+
+---
+
+### `media_room_manager/get_profile`
+
+Returns the fully serialized profile for a given `profile_id`.
+
+**Request:**
+
+```json
+{ "id": 5, "type": "media_room_manager/get_profile", "profile_id": "marantz/sr8015" }
+```
+
+**Response (success):**
+
+```json
+{
+  "id": 5,
+  "type": "result",
+  "success": true,
+  "result": {
+    "profile": {
+      "profile_id": "marantz/sr8015",
+      "schema_version": 1,
+      "manufacturer": "Marantz",
+      "model": "SR8015",
+      "category": "avr",
+      "power_handling": "discrete_capable",
+      "power_on_delay": 4,
+      "exclusive_outputs": false,
+      "output_groups": [ ... ],
+      "interfaces": [ ... ],
+      "virtual_sources": [ ... ],
+      "dynamic_virtual_sources": { ... },
+      "aux_entities": [],
+      "inputs_are_exclusive_per_output_group": ["main", "zone_2"],
+      "discovery": { ... }
+    }
+  }
+}
+```
+
+**Response (not found):**
+
+```json
+{
+  "id": 5,
+  "type": "result",
+  "success": false,
+  "error": { "code": "not_found", "message": "Profile 'bad/id' not found" }
+}
+```
+
+---
+
 *Further commands will be added in subsequent phases. See `TASKS.md` for the
 planned command surface.*

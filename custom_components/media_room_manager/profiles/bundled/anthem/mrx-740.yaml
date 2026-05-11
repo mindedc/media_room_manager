@@ -1,0 +1,101 @@
+profile_id: anthem/mrx-740
+schema_version: 1
+manufacturer: Anthem
+model: MRX 740
+category: avr
+power_handling: discrete_capable
+power_on_delay: 5
+
+output_groups:
+  - id: main
+    selection_mechanism:
+      kind: media_player_source
+      expected_domain: media_player
+      expected_features: [turn_on, turn_off, select_source, volume_set, volume_mute]
+    provides_roles: [power, volume, source_selection, metadata_source]
+  - id: zone_2
+    selection_mechanism:
+      kind: media_player_source
+      expected_domain: media_player
+      expected_features: [turn_on, turn_off, select_source, volume_set, volume_mute]
+    provides_roles: [power, volume, source_selection, metadata_source]
+
+inputs_are_exclusive_per_output_group: [main, zone_2]
+
+interfaces:
+  - id: hdmi_1
+    direction: input
+    type: hdmi
+    label: "HDMI 1"
+    routable_to_output_group: [main, zone_2]
+  - id: hdmi_2
+    direction: input
+    type: hdmi
+    label: "HDMI 2"
+    routable_to_output_group: [main, zone_2]
+  - id: hdmi_3
+    direction: input
+    type: hdmi
+    label: "HDMI 3"
+    routable_to_output_group: [main, zone_2]
+  - id: hdmi_4
+    direction: input
+    type: hdmi
+    label: "HDMI 4"
+    routable_to_output_group: [main, zone_2]
+  - id: hdmi_5
+    direction: input
+    type: hdmi
+    label: "HDMI 5"
+    routable_to_output_group: [main, zone_2]
+  - id: optical_in_1
+    direction: input
+    type: optical_audio
+    label: "OPTICAL 1"
+    routable_to_output_group: [main, zone_2]
+  - id: coax_in_1
+    direction: input
+    type: coax_audio
+    label: "COAX 1"
+    routable_to_output_group: [main, zone_2]
+  - id: hdmi_main_out
+    direction: output
+    type: hdmi_audio_return
+    label: "HDMI MAIN"
+    output_group: main
+  - id: hdmi_parallel_out
+    direction: output
+    type: hdmi_audio_return
+    label: "HDMI PARALLEL"
+    output_group: main
+  - id: hdmi_zone_2_out
+    direction: output
+    type: hdmi
+    label: "HDMI ZONE 2"
+    output_group: zone_2
+  - id: zone_2_rca_pre_out
+    direction: output
+    type: rca_audio
+    label: "ZONE 2 PRE-OUT"
+    output_group: zone_2
+
+discovery:
+  output_groups:
+    - output_group: main
+      is_discovery_anchor: true
+      match_threshold: 60
+      signals:
+        - kind: device_registry
+          manufacturer: "Anthem"
+          model_patterns: ["MRX 740"]
+          weight: 100
+        - kind: attribute_constellation
+          includes: ["source_list", "sound_mode_list", "supported_features"]
+          weight: 50
+    - output_group: zone_2
+      match_threshold: 50
+      optional: true
+      signals:
+        - kind: attribute_constellation
+          includes: ["source_list", "supported_features"]
+          weight: 30

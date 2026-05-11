@@ -1,0 +1,48 @@
+profile_id: sony/dvp-ns500v
+schema_version: 1
+manufacturer: Sony
+model: DVP-NS500V
+category: source
+power_handling: toggle
+power_on_delay: 4
+
+output_groups:
+  - id: main
+    aux_entity: ir_blaster
+    provides_roles: [power, transport]
+    role_operations:
+      power:
+        kind: remote_command
+        operations:
+          power_on:  { command: "POWER" }
+          power_off: { command: "POWER" }
+      transport:
+        kind: remote_command
+        operations:
+          play:     { command: "PLAY" }
+          pause:    { command: "PAUSE" }
+          stop:     { command: "STOP" }
+          next:     { command: "NEXT" }
+          previous: { command: "PREV" }
+
+aux_entities:
+  - id: ir_blaster
+    expected_domain: remote
+    expected_commands: ["POWER", "PLAY", "PAUSE", "STOP", "NEXT", "PREV"]
+
+interfaces:
+  - id: composite_video_out
+    direction: output
+    type: composite_video
+    label: "VIDEO OUT"
+    output_group: main
+  - id: rca_audio_out
+    direction: output
+    type: rca_audio
+    label: "AUDIO OUT"
+    output_group: main
+  - id: coax_audio_out
+    direction: output
+    type: coax_audio
+    label: "COAX DIGITAL OUT"
+    output_group: main

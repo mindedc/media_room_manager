@@ -1,0 +1,101 @@
+profile_id: denon/avr-x1700h
+schema_version: 1
+manufacturer: Denon
+model: AVR-X1700H
+category: avr
+power_handling: discrete_capable
+power_on_delay: 3
+
+output_groups:
+  - id: main
+    selection_mechanism:
+      kind: media_player_source
+      expected_domain: media_player
+      expected_features:
+        - turn_on
+        - turn_off
+        - select_source
+        - volume_set
+        - volume_mute
+    provides_roles: [power, volume, source_selection, metadata_source]
+
+interfaces:
+  - id: hdmi_1
+    direction: input
+    type: hdmi
+    label: "CBL/SAT"
+    routable_to_output_group: [main]
+  - id: hdmi_2
+    direction: input
+    type: hdmi
+    label: "DVD"
+    routable_to_output_group: [main]
+  - id: hdmi_3
+    direction: input
+    type: hdmi
+    label: "Blu-ray"
+    routable_to_output_group: [main]
+  - id: hdmi_4
+    direction: input
+    type: hdmi
+    label: "Game"
+    routable_to_output_group: [main]
+  - id: hdmi_5
+    direction: input
+    type: hdmi
+    label: "Media Player"
+    routable_to_output_group: [main]
+  - id: hdmi_6
+    direction: input
+    type: hdmi
+    label: "TV"
+    routable_to_output_group: [main]
+  - id: optical_in_1
+    direction: input
+    type: optical_audio
+    label: "OPTICAL 1"
+    routable_to_output_group: [main]
+  - id: coax_in_1
+    direction: input
+    type: coax_audio
+    label: "COAX 1"
+    routable_to_output_group: [main]
+  - id: phono_in
+    direction: input
+    type: rca_audio
+    label: "Phono"
+    routable_to_output_group: [main]
+  - id: hdmi_main_out
+    direction: output
+    type: hdmi_audio_return
+    label: "HDMI MONITOR OUT"
+    output_group: main
+
+dynamic_virtual_sources:
+  source: source_list_minus_known
+  output_group: main
+  exclude:
+    - "Internet Radio"
+
+discovery:
+  output_groups:
+    - output_group: main
+      is_discovery_anchor: true
+      match_threshold: 60
+      signals:
+        - kind: device_registry
+          manufacturer: "Denon"
+          model_patterns: ["AVR-X1700H", "*X1700H*"]
+          weight: 100
+        - kind: platform
+          domain: denonavr
+          weight: 40
+        - kind: source_list_signature
+          includes_any: ["CBL/SAT", "Blu-ray", "Phono", "Media Player"]
+          weight: 30
+        - kind: sound_mode_list_signature
+          includes_any: ["STEREO", "DOLBY DIGITAL", "DTS SURROUND"]
+          weight: 50
+        - kind: attribute_constellation
+          includes: ["source_list", "sound_mode_list", "supported_features"]
+          weight: 50

@@ -1,0 +1,36 @@
+profile_id: generic/hdmi-splitter-1x4
+schema_version: 1
+manufacturer: Generic
+model: HDMI 1x4 Splitter
+category: passive_converter
+power_handling: disabled
+
+output_groups:
+  - id: main
+
+interfaces:
+  - id: hdmi_in
+    direction: input
+    type: hdmi
+    label: "HDMI IN"
+    routable_to_output_group: [main]
+  - id: hdmi_out_1
+    direction: output
+    type: hdmi
+    label: "HDMI OUT 1"
+    output_group: main
+  - id: hdmi_out_2
+    direction: output
+    type: hdmi
+    label: "HDMI OUT 2"
+    output_group: main
+  - id: hdmi_out_3
+    direction: output
+    type: hdmi
+    label: "HDMI OUT 3"
+    output_group: main
+  - id: hdmi_out_4
+    direction: output
+    type: hdmi
+    label: "HDMI OUT 4"
+    output_group: main

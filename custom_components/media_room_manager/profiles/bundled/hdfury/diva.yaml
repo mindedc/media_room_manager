@@ -1,0 +1,71 @@
+profile_id: hdfury/diva
+schema_version: 1
+manufacturer: HDFury
+model: Diva
+category: matrix
+power_handling: discrete_capable
+
+output_groups:
+  - id: tx0
+    selection_mechanism:
+      kind: select_entity
+      expected_domain: select
+      expected_options: ["Input 1", "Input 2", "Input 3", "Input 4"]
+  - id: tx1
+    selection_mechanism:
+      kind: select_entity
+      expected_domain: select
+      expected_options: ["Input 1", "Input 2", "Input 3", "Input 4"]
+
+inputs_are_exclusive_per_output_group: [tx0, tx1]
+
+aux_entities:
+  - id: power
+    expected_domain: switch
+
+interfaces:
+  - id: hdmi_in_1
+    direction: input
+    type: hdmi
+    label: "Input 1"
+    routable_to_output_group: [tx0, tx1]
+  - id: hdmi_in_2
+    direction: input
+    type: hdmi
+    label: "Input 2"
+    routable_to_output_group: [tx0, tx1]
+  - id: hdmi_in_3
+    direction: input
+    type: hdmi
+    label: "Input 3"
+    routable_to_output_group: [tx0, tx1]
+  - id: hdmi_in_4
+    direction: input
+    type: hdmi
+    label: "Input 4"
+    routable_to_output_group: [tx0, tx1]
+  - id: tx0_hdmi
+    direction: output
+    type: hdmi_audio_return
+    label: "TX0"
+    output_group: tx0
+  - id: aud0_hdmi
+    direction: output
+    type: hdmi
+    label: "AUD0 (Audio Extraction)"
+    output_group: tx0
+  - id: analog_audio_out
+    direction: output
+    type: rca_audio
+    label: "Analog Out"
+    output_group: tx0
+  - id: optical_out
+    direction: output
+    type: optical_audio
+    label: "Optical Out"
+    output_group: tx0
+  - id: tx1_hdmi
+    direction: output
+    type: hdmi
+    label: "TX1"
+    output_group: tx1

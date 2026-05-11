@@ -1,0 +1,70 @@
+profile_id: lumagen/radiance-pro
+schema_version: 1
+manufacturer: Lumagen
+model: Radiance Pro
+category: video_processor
+power_handling: discrete_capable
+power_on_delay: 6
+
+output_groups:
+  - id: main
+    selection_mechanism:
+      kind: media_player_source
+      expected_domain: media_player
+      expected_features: [select_source]
+    provides_roles: [source_selection]
+
+inputs_are_exclusive_per_output_group: [main]
+exclusive_outputs: true
+
+interfaces:
+  - id: hdmi_in_1
+    direction: input
+    type: hdmi
+    label: "Input 1"
+    routable_to_output_group: [main]
+  - id: hdmi_in_2
+    direction: input
+    type: hdmi
+    label: "Input 2"
+    routable_to_output_group: [main]
+  - id: hdmi_in_3
+    direction: input
+    type: hdmi
+    label: "Input 3"
+    routable_to_output_group: [main]
+  - id: hdmi_in_4
+    direction: input
+    type: hdmi
+    label: "Input 4"
+    routable_to_output_group: [main]
+  - id: hdmi_in_5
+    direction: input
+    type: hdmi
+    label: "Input 5"
+    routable_to_output_group: [main]
+  - id: hdmi_in_6
+    direction: input
+    type: hdmi
+    label: "Input 6"
+    routable_to_output_group: [main]
+  - id: hdmi_in_7
+    direction: input
+    type: hdmi
+    label: "Input 7"
+    routable_to_output_group: [main]
+  - id: hdmi_in_8
+    direction: input
+    type: hdmi
+    label: "Input 8"
+    routable_to_output_group: [main]
+  - id: hdmi_out_a
+    direction: output
+    type: hdmi
+    label: "Output A"
+    output_group: main
+  - id: hdmi_out_b
+    direction: output
+    type: hdmi
+    label: "Output B"
+    output_group: main
