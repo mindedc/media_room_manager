@@ -8,7 +8,7 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 ---
 
-## Active phase: Phase 3 — Adapter registry
+## Active phase: Phase 4 — Path resolver
 
 ### Phase 0 tasks
 
@@ -109,21 +109,21 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 ### Phase 3 tasks
 
-- [ ] **3.1** Define the adapter interface in `adapters/base.py`. Abstract base class (or Protocol) with async methods: `async_select_input(...)`, `async_set_volume(...)`, `async_send_transport(...)`, `async_power_on(...)`, `async_power_off(...)`, etc. Document each method's contract.
+- [x] **3.1** Define the adapter interface in `adapters/base.py`. Abstract base class (or Protocol) with async methods: `async_select_input(...)`, `async_set_volume(...)`, `async_send_transport(...)`, `async_power_on(...)`, `async_power_off(...)`, etc. Document each method's contract.
 
-- [ ] **3.2** Implement `MediaPlayerSourceAdapter` in `adapters/media_player_source.py`. Operations call `media_player.select_source`, `media_player.turn_on`, `media_player.turn_off`, `media_player.volume_set`, etc., on the bound entity. Tests using HA's mock service registry assert the right service calls.
+- [x] **3.2** Implement `MediaPlayerSourceAdapter` in `adapters/media_player_source.py`. Operations call `media_player.select_source`, `media_player.turn_on`, `media_player.turn_off`, `media_player.volume_set`, etc., on the bound entity. Tests using HA's mock service registry assert the right service calls.
 
-- [ ] **3.3** Implement `SelectEntityAdapter` in `adapters/select_entity.py`. Calls `select.select_option` on the bound entity. Tests.
+- [x] **3.3** Implement `SelectEntityAdapter` in `adapters/select_entity.py`. Calls `select.select_option` on the bound entity. Tests.
 
-- [ ] **3.4** Implement `SwitchComboAdapter` in `adapters/switch_combo.py`. For matrices exposed as a grid of switch entities, turns on the correct switch and ensures others in the row are off. Tests.
+- [x] **3.4** Implement `SwitchComboAdapter` in `adapters/switch_combo.py`. For matrices exposed as a grid of switch entities, turns on the correct switch and ensures others in the row are off. Tests.
 
-- [ ] **3.5** Implement `RemoteCommandAdapter` in `adapters/remote_command.py`. Calls `remote.send_command` with the configured command name. Supports command sequences with delays. Tests including sequence/delay behavior.
+- [x] **3.5** Implement `RemoteCommandAdapter` in `adapters/remote_command.py`. Calls `remote.send_command` with the configured command name. Supports command sequences with delays. Tests including sequence/delay behavior.
 
-- [ ] **3.6** Implement `ServiceCallAdapter` in `adapters/service_call.py`. Calls an arbitrary HA service with statically-enumerated parameters. Implements the `$value` sentinel substitution: any field whose value is exactly `"$value"` is replaced with the operation's input value at call time. Tests covering positive cases and rejection of any other templating attempts (e.g., `"prefix-$value"` is **not** substituted; only the literal string `"$value"` is).
+- [x] **3.6** Implement `ServiceCallAdapter` in `adapters/service_call.py`. Calls an arbitrary HA service with statically-enumerated parameters. Implements the `$value` sentinel substitution: any field whose value is exactly `"$value"` is replaced with the operation's input value at call time. Tests covering positive cases and rejection of any other templating attempts (e.g., `"prefix-$value"` is **not** substituted; only the literal string `"$value"` is).
 
-- [ ] **3.7** Create `adapters/registry.py` with an `AdapterRegistry` that maps mechanism kind strings to adapter instances. Used by the orchestrator. Tests.
+- [x] **3.7** Create `adapters/registry.py` with an `AdapterRegistry` that maps mechanism kind strings to adapter instances. Used by the orchestrator. Tests.
 
-- [ ] **3.8** Verify all five adapters work correctly in isolation against HA's mock environment. Mark Phase 3 complete.
+- [x] **3.8** Verify all five adapters work correctly in isolation against HA's mock environment. Mark Phase 3 complete.
 
 ---
 
