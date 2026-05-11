@@ -1,0 +1,13 @@
+{
+  "domain": "media_room_manager",
+  "name": "Media Room Manager",
+  "version": "0.0.1",
+  "config_flow": true,
+  "documentation": "https://github.com/mindedc/media_room_manager",
+  "issue_tracker": "https://github.com/mindedc/media_room_manager/issues",
+  "iot_class": "local_push",
+  "dependencies": [],
+  "requirements": [],
+  "codeowners": ["@mindedc"],
+  "homeassistant": "2024.1.0"
+}

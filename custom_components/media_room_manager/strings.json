@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Media Room Manager",
+        "description": "Install the Media Room Manager integration. Configuration happens through the panel after installation."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Only one instance of Media Room Manager is supported."
+    }
+  }
+}

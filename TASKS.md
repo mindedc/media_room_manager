@@ -12,23 +12,23 @@ If a task description is unclear or seems to contradict the README, **stop and a
 
 ### Phase 0 tasks
 
-- [ ] **0.1** Initialize repo structure. Create directories: `custom_components/media_room_manager/`, `frontend/`, `tests/{unit,integration,fixtures}/`, `scripts/`, `docs/`. Add a top-level `.gitignore` (Python + Node patterns), `LICENSE` (TBD by user — leave a placeholder if not specified), and a stub `README.md` at the repo root that points at the design doc location.
+- [x] **0.1** Initialize repo structure. Create directories: `custom_components/media_room_manager/`, `frontend/`, `tests/{unit,integration,fixtures}/`, `scripts/`, `docs/`. Add a top-level `.gitignore` (Python + Node patterns), `LICENSE` (TBD by user — leave a placeholder if not specified), and a stub `README.md` at the repo root that points at the design doc location.
 
-- [ ] **0.2** Create `custom_components/media_room_manager/manifest.json` with: `domain: "media_room_manager"`, `name: "Media Room Manager"`, valid HACS-compatible fields. Set `version` to `0.0.1`. Include `iot_class`, `dependencies`, `requirements` (empty list initially), `codeowners`. Validate against HA's manifest schema.
+- [x] **0.2** Create `custom_components/media_room_manager/manifest.json` with: `domain: "media_room_manager"`, `name: "Media Room Manager"`, valid HACS-compatible fields. Set `version` to `0.0.1`. Include `iot_class`, `dependencies`, `requirements` (empty list initially), `codeowners`. Validate against HA's manifest schema.
 
-- [ ] **0.3** Create `custom_components/media_room_manager/__init__.py` with the standard async setup/unload structure for a config-flow-based integration. `async_setup_entry` returns `True` and stores nothing yet. `async_unload_entry` returns `True`. `const.py` defines `DOMAIN = "media_room_manager"` and any other constants.
+- [x] **0.3** Create `custom_components/media_room_manager/__init__.py` with the standard async setup/unload structure for a config-flow-based integration. `async_setup_entry` returns `True` and stores nothing yet. `async_unload_entry` returns `True`. `const.py` defines `DOMAIN = "media_room_manager"` and any other constants.
 
-- [ ] **0.4** Create `custom_components/media_room_manager/config_flow.py` with a single-step flow that just creates a config entry with no data. Title: "Media Room Manager". The user clicks "Submit" and the integration installs. No options flow yet.
+- [x] **0.4** Create `custom_components/media_room_manager/config_flow.py` with a single-step flow that just creates a config entry with no data. Title: "Media Room Manager". The user clicks "Submit" and the integration installs. No options flow yet.
 
-- [ ] **0.5** Set up Python tooling. Add `pyproject.toml` with `ruff`, `mypy`, and `pytest` configurations. Configure `ruff` for line length 100, target Python 3.12, sensible rule selection. Configure `mypy` with `strict = true` for `custom_components/`. Configure `pytest` to discover tests from `tests/`.
+- [x] **0.5** Set up Python tooling. Add `pyproject.toml` with `ruff`, `mypy`, and `pytest` configurations. Configure `ruff` for line length 100, target Python 3.12, sensible rule selection. Configure `mypy` with `strict = true` for `custom_components/`. Configure `pytest` to discover tests from `tests/`.
 
-- [ ] **0.6** Add development dependencies. Create `requirements_test.txt` with `pytest`, `pytest-asyncio`, `pytest-homeassistant-custom-component`, `voluptuous`, `homeassistant`, `ruff`, `mypy`. Document install steps in a brief `docs/development.md`.
+- [x] **0.6** Add development dependencies. Create `requirements_test.txt` with `pytest`, `pytest-asyncio`, `pytest-homeassistant-custom-component`, `voluptuous`, `homeassistant`, `ruff`, `mypy`. Document install steps in a brief `docs/development.md`.
 
-- [ ] **0.7** Add a single trivial unit test in `tests/unit/test_const.py` that imports `const` and asserts `DOMAIN == "media_room_manager"`. Verify `pytest` runs and passes.
+- [x] **0.7** Add a single trivial unit test in `tests/unit/test_const.py` that imports `const` and asserts `DOMAIN == "media_room_manager"`. Verify `pytest` runs and passes.
 
-- [ ] **0.8** Verify `ruff check`, `ruff format --check`, and `mypy` all pass on the empty integration. Fix any issues from scaffolding.
+- [x] **0.8** Verify `ruff check`, `ruff format --check`, and `mypy` all pass on the empty integration. Fix any issues from scaffolding.
 
-- [ ] **0.9** Set up frontend tooling stub. Create `frontend/package.json`, `frontend/tsconfig.json` (strict mode), `frontend/vite.config.ts`, `frontend/.eslintrc`, and `frontend/src/index.ts` (empty). Verify `npm install` and `npm run typecheck` work, even though there's no real code yet. Don't build a panel yet.
+- [x] **0.9** Set up frontend tooling stub. Create `frontend/package.json`, `frontend/tsconfig.json` (strict mode), `frontend/vite.config.ts`, `frontend/.eslintrc`, and `frontend/src/index.ts` (empty). Verify `npm install` and `npm run typecheck` work, even though there's no real code yet. Don't build a panel yet.
 
 - [ ] **0.10** Verify the integration loads in a dev HA instance. Document the steps in `docs/development.md`. The integration should appear in "Add Integration", install successfully, and show no errors in the HA log. Mark Phase 0 complete.
 
